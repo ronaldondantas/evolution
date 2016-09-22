@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="br.com.nadod.evolution.ChartsActivity">
+    tools:context=".activity.ChartsActivity">
 
     <android.support.v4.widget.NestedScrollView
         xmlns:android="http://schemas.android.com/apk/res/android"
@@ -42,6 +42,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
-        android:src="@android:drawable/ic_media_play" />
+        android:src="@drawable/ic_plus" />
 
 </android.support.design.widget.CoordinatorLayout>
