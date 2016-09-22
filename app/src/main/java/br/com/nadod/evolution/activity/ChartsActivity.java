@@ -168,6 +168,8 @@ public class ChartsActivity extends AppCompatActivity {
         lineSet.setDotsColor(Color.parseColor("#FFFFFF"));
         lineSet.setDotsStrokeColor(ContextCompat.getColor(this, R.color.colorPrimaryDark));
 
+        //using WilliamChart from @dfbernardino
+
         if (lineChartView != null) {
             lineChartView.reset();
             lineChartView.addData(lineSet);
@@ -183,7 +185,6 @@ public class ChartsActivity extends AppCompatActivity {
             gridPaint.setStrokeWidth(Tools.fromDpToPx((float) 1.0));
             lineChartView.setGrid(ChartView.GridType.HORIZONTAL, gridPaint);
 
-            // Animation customization
             Animation anim = new Animation();
             anim.setEasing(new LinearEase());
             anim.setDuration(500);
