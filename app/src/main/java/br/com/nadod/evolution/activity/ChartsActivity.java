@@ -3,36 +3,30 @@ package br.com.nadod.evolution.activity;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.util.Pair;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.util.Log;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import com.db.chart.Tools;
 import com.db.chart.model.LineSet;
-import com.db.chart.model.Point;
-import com.db.chart.view.AxisController;
 import com.db.chart.view.ChartView;
 import com.db.chart.view.LineChartView;
 import com.db.chart.view.animation.Animation;
-import com.db.chart.view.animation.easing.CircEase;
 import com.db.chart.view.animation.easing.LinearEase;
-import com.db.chart.view.animation.easing.SineEase;
-import com.weiwangcn.betterspinner.library.material.MaterialBetterSpinner;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
@@ -43,13 +37,17 @@ import br.com.nadod.evolution.model.Measurement;
 public class ChartsActivity extends AppCompatActivity {
 
     List<String> measuresType = new ArrayList<>();
-//    String[] measuresType = {"Peso", "Cintura"};
 
     HashMap<Integer, Measure> measureHashMap = new HashMap<>();
     int currentMeasureId;
     HashMap<Integer, List<Measurement>> measurementHashMap = new HashMap<>();
 
     LineChartView lineChartView;
+    TextView tvLastMeasurementDate;
+    TextView tvMeasure;
+    TextView tvResult;
+    TextView tvMin;
+    TextView tvMax;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +57,11 @@ public class ChartsActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         lineChartView = (LineChartView) findViewById(R.id.chart);
+        tvLastMeasurementDate = (TextView) findViewById(R.id.tvDate);
+        tvMeasure = (TextView) findViewById(R.id.tvMeasure);
+        tvResult = (TextView) findViewById(R.id.tvResult);
+        tvMin = (TextView) findViewById(R.id.tvMin);
+        tvMax = (TextView) findViewById(R.id.tvMax);
 
         //TODO: MOCK RETIRAR
 
@@ -79,25 +82,30 @@ public class ChartsActivity extends AppCompatActivity {
 
         List<Measurement> measurementListByMeasure = new ArrayList<>();
 
+        Calendar now = Calendar.getInstance();
+
         Measurement measurement = new Measurement();
         measurement.setId(1);
         measurement.setMeasureId(1);
         measurement.setValue((float) 125.5);
-        measurement.setDate(SystemClock.currentThreadTimeMillis()/1000);
+        now.set(2016, 4, 1);
+        measurement.setDate(now.getTime().getTime());
         measurementListByMeasure.add(measurement);
 
         measurement = new Measurement();
         measurement.setId(1);
         measurement.setMeasureId(1);
         measurement.setValue((float) 128.5);
-        measurement.setDate(SystemClock.currentThreadTimeMillis()/1000);
+        now.set(2016, 6, 23);
+        measurement.setDate(now.getTime().getTime());
         measurementListByMeasure.add(measurement);
 
         measurement = new Measurement();
         measurement.setId(1);
         measurement.setMeasureId(1);
         measurement.setValue((float) 129);
-        measurement.setDate(SystemClock.currentThreadTimeMillis()/1000);
+        now.set(2016, 9, 22);
+        measurement.setDate(now.getTime().getTime());
         measurementListByMeasure.add(measurement);
         measurementHashMap.put(measurement.getMeasure_id(), measurementListByMeasure);
 
@@ -107,21 +115,24 @@ public class ChartsActivity extends AppCompatActivity {
         measurement.setId(2);
         measurement.setMeasureId(2);
         measurement.setValue((float) 130);
-        measurement.setDate(SystemClock.currentThreadTimeMillis()/1000);
+        now.set(2016, 4, 1);
+        measurement.setDate(now.getTime().getTime());
         measurementListByMeasure.add(measurement);
 
         measurement = new Measurement();
         measurement.setId(2);
         measurement.setMeasureId(2);
         measurement.setValue((float) 120);
-        measurement.setDate(SystemClock.currentThreadTimeMillis()/1000);
+        now.set(2016, 6, 2);
+        measurement.setDate(now.getTime().getTime());
         measurementListByMeasure.add(measurement);
 
         measurement = new Measurement();
         measurement.setId(2);
         measurement.setMeasureId(2);
         measurement.setValue((float) 110);
-        measurement.setDate(SystemClock.currentThreadTimeMillis()/1000);
+        now.set(2016, 9, 22);
+        measurement.setDate(now.getTime().getTime());
         measurementListByMeasure.add(measurement);
         measurementHashMap.put(measurement.getMeasure_id(), measurementListByMeasure);
 
@@ -158,7 +169,7 @@ public class ChartsActivity extends AppCompatActivity {
     }
 
     private void plotChart() {
-        Pair<String[], float[]> labelsAndFloat = getStringAndLabels(currentMeasureId);
+        Pair<String[], float[]> labelsAndFloat = getStringAndLabels();
         LineSet lineSet = new LineSet(labelsAndFloat.first, labelsAndFloat.second);
 
         lineSet.setSmooth(true);
@@ -168,7 +179,7 @@ public class ChartsActivity extends AppCompatActivity {
         lineSet.setDotsColor(Color.parseColor("#FFFFFF"));
         lineSet.setDotsStrokeColor(ContextCompat.getColor(this, R.color.colorPrimaryDark));
 
-        //using WilliamChart from @dfbernardino
+        //using WilliamChart by @dfbernardino
 
         if (lineChartView != null) {
             lineChartView.reset();
@@ -195,17 +206,64 @@ public class ChartsActivity extends AppCompatActivity {
         }
     }
 
-    private Pair<String[], float[]> getStringAndLabels(int measure_id) {
+    private void refreshValues(double minValue, double maxValue, double lastMeasure, double result,
+                               String dateLastMeasure) {
+        tvLastMeasurementDate.setText(dateLastMeasure);
+        String textMeasure = String.valueOf(lastMeasure) + " kg";
+        tvMeasure.setText(textMeasure);
+
+        String txtResult;
+        if (result > 0) txtResult = "+" + String.valueOf(result);
+        else txtResult = String.valueOf(result);
+        tvResult.setText(txtResult);
+
+        tvMin.setText(String.valueOf(minValue));
+        tvMax.setText(String.valueOf(maxValue));
+    }
+
+    private Pair<String[], float[]> getStringAndLabels() {
         Pair<String[], float[]> pairLabelAndValues;
-        List<Measurement> measurementList = measurementHashMap.get(measure_id);
+        List<Measurement> measurementList = measurementHashMap.get(currentMeasureId);
         String[] labels = new String[measurementList.size()];
         float[] values = new float[measurementList.size()];
+        SimpleDateFormat format = new SimpleDateFormat("dd/MM");
+
+        double minValue = 300;
+        double maxValue = 0;
+
+        double result;
+
+        double firstMeasure = 0;
+        long dateFirstMeasure = Long.MAX_VALUE;
+
+        double lastMeasure = 0;
+        long dateLastMeasure = 0;
+
+        String dateTxtLastMeasure;
+
         int i=0;
-        for (Measurement date : measurementList) {
-            labels[i] = String.valueOf(date.getDate()); //TODO: Converter para Date
-            values[i] = date.getValue();
+        for (Measurement measurement : measurementList) {
+            labels[i] = format.format(measurement.getDate());
+            values[i] = measurement.getValue();
+
+            if (measurement.getDate() < dateFirstMeasure) {
+                dateFirstMeasure = measurement.getDate();
+                firstMeasure = measurement.getValue();
+            }
+            if (measurement.getDate() > dateLastMeasure) {
+                dateLastMeasure = measurement.getDate();
+                lastMeasure = measurement.getValue();
+            }
+            if (measurement.getValue() < minValue) minValue = measurement.getValue();
+            if (measurement.getValue() > maxValue) maxValue = measurement.getValue();
+
             i++;
         }
+        format = new SimpleDateFormat("dd/MM/yyyy");
+        dateTxtLastMeasure = format.format(dateLastMeasure);
+        result = (lastMeasure - firstMeasure);
+
+        refreshValues(minValue, maxValue, lastMeasure, result, dateTxtLastMeasure);
         pairLabelAndValues = new Pair<>(labels, values);
         return pairLabelAndValues;
     }
