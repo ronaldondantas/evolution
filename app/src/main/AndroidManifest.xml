@@ -18,6 +18,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".activity.MeasurementActivity"
+            android:label="Cadastrar medição"
+            android:theme="@style/AppTheme.NoActionBar"/>
     </application>
 
 </manifest>

@@ -1,6 +1,8 @@
 package br.com.nadod.evolution.model;
 
-public class Measurement {
+import java.io.Serializable;
+
+public class Measurement implements Serializable{
     private int id;
     private int measure_id;
     private float value;

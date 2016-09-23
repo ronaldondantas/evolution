@@ -6,4 +6,5 @@
     <string name="name_min">MÍNIMO</string>
     <string name="measure_kg_default">0.0 kg</string>
     <string name="date_default">01/01/2000</string>
+    <string name="txt_date">Data</string>
 </resources>
