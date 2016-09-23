@@ -1,8 +1,10 @@
 package br.com.nadod.evolution.model;
 
+import android.support.annotation.NonNull;
+
 import java.io.Serializable;
 
-public class Measurement implements Serializable{
+public class Measurement implements Serializable, Comparable<Measurement> {
     private int id;
     private int measure_id;
     private float value;
@@ -38,5 +40,12 @@ public class Measurement implements Serializable{
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    @Override
+    public int compareTo(@NonNull Measurement another) {
+        if (this.date < another.getDate()) return -1;
+        if (this.date > another.getDate()) return 1;
+        return 0;
     }
 }

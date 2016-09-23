@@ -235,6 +235,7 @@ public class ChartsActivity extends AppCompatActivity {
     private Pair<String[], float[]> getStringAndLabels() {
         Pair<String[], float[]> pairLabelAndValues;
         List<Measurement> measurementList = measurementHashMap.get(currentMeasureId);
+        Collections.sort(measurementList);
         String[] labels = new String[measurementList.size()];
         float[] values = new float[measurementList.size()];
         SimpleDateFormat format = new SimpleDateFormat("dd/MM");
@@ -254,7 +255,6 @@ public class ChartsActivity extends AppCompatActivity {
 
         int i=0;
         for (Measurement measurement : measurementList) {
-            //TODO: Ordenar os labels conforme getDate()
             labels[i] = format.format(measurement.getDate());
             values[i] = measurement.getValue();
 
