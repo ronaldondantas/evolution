@@ -49,7 +49,7 @@ public class MeasurementDAO {
                 values += value;
             }
         }
-        values = values.substring(0, values.length()-2);
+        values = values.substring(0, values.length()-1);
 
         try {
             db.execSQL("INSERT INTO " + Utils.TABLE_MEASUREMENT +
@@ -76,7 +76,7 @@ public class MeasurementDAO {
                         int id = cursor.getInt(cursor.getColumnIndex("id"));
                         int measureId = cursor.getInt(cursor.getColumnIndex("measure_id"));
                         float value = cursor.getFloat(cursor.getColumnIndex("value"));
-                        int date = cursor.getInt(cursor.getColumnIndex("date"));
+                        long date = cursor.getLong(cursor.getColumnIndex("date"));
 
                         measurement = new Measurement();
                         measurement.setId(id);

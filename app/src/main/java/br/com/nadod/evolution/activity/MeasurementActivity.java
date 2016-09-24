@@ -148,6 +148,7 @@ public class MeasurementActivity extends AppCompatActivity
 
             Measurement measurement;
             for (MaterialEditText metMeasure : materialEditTexts) {
+                if (metMeasure.getText().toString().isEmpty()) continue;
                 List<Measurement> measurementList = new ArrayList<>();
                 measurement = new Measurement();
                 measurement.setDate(chosenDate.getTime().getTime());
