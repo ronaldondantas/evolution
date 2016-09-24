@@ -25,6 +25,8 @@ import java.util.Map;
 import br.com.nadod.evolution.R;
 import br.com.nadod.evolution.model.Measure;
 import br.com.nadod.evolution.model.Measurement;
+import br.com.nadod.evolution.model.MeasurementDAO;
+import br.com.nadod.evolution.utils.Utils;
 
 public class MeasurementActivity extends AppCompatActivity
         implements DatePickerDialog.OnDateSetListener {
@@ -45,9 +47,9 @@ public class MeasurementActivity extends AppCompatActivity
         }
 
         if (savedInstanceState != null) {
-            measureHashMap = (HashMap<Integer, Measure>) savedInstanceState.get("MEASURES_TYPE");
+            measureHashMap = (HashMap<Integer, Measure>) savedInstanceState.get(Utils.MEASURE_TYPE);
         } else {
-            measureHashMap = (HashMap<Integer, Measure>) getIntent().getSerializableExtra("MEASURES_TYPE");
+            measureHashMap = (HashMap<Integer, Measure>) getIntent().getSerializableExtra(Utils.MEASURE_TYPE);
         }
 
         LinearLayout llMeasureType = (LinearLayout) findViewById(R.id.llMeasureType);
@@ -151,16 +153,19 @@ public class MeasurementActivity extends AppCompatActivity
                 measurement.setDate(chosenDate.getTime().getTime());
                 measurement.setMeasureId((int) metMeasure.getTag());
                 measurement.setValue(Float.valueOf(metMeasure.getText().toString()));
+
                 measurementList.add(measurement);
                 measurementHashMap.put(measurement.getMeasure_id(), measurementList);
             }
             if (!measurementHashMap.isEmpty()) {
+                MeasurementDAO measurementDAO = new MeasurementDAO(this);
+                measurementDAO.insertAll(measurementHashMap);
                 Intent intent = new Intent();
-                intent.putExtra("NEW_MEASUREMENTS", (Serializable) measurementHashMap);
+                intent.putExtra(Utils.NEW_MEASUREMENT, (Serializable) measurementHashMap);
                 setResult(RESULT_OK, intent);
                 finish();
             } else {
-                Toast.makeText(this, "Nenhuma medição foi incluída", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, R.string.toast_no_measurement, Toast.LENGTH_LONG).show();
             }
             return true;
         } else if (id == android.R.id.home) {

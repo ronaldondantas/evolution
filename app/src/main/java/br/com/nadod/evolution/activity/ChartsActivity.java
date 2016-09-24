@@ -14,6 +14,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -25,10 +26,10 @@ import com.db.chart.view.LineChartView;
 import com.db.chart.view.animation.Animation;
 import com.db.chart.view.animation.easing.LinearEase;
 
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -36,24 +37,34 @@ import java.util.Map;
 
 import br.com.nadod.evolution.R;
 import br.com.nadod.evolution.model.Measure;
+import br.com.nadod.evolution.model.MeasureDAO;
 import br.com.nadod.evolution.model.Measurement;
+import br.com.nadod.evolution.model.MeasurementDAO;
+import br.com.nadod.evolution.utils.Utils;
 
 public class ChartsActivity extends AppCompatActivity {
     private static int ADD_MEASUREMENT = 0;
 
+    private static String MEASURES_TYPE = "MEASURES_TYPE";
+    private static String MEASURE_HASHMAP = "MEASURE_HASHMAP";
+    private static String MEASUREMENT_HASHMAP = "MEASUREMENT_HASHMAP";
+    private static String CURRENT_MEASURE_ID = "CURRENT_MEASURE_ID";
+
     List<String> measuresType = new ArrayList<>();
-
     HashMap<Integer, Measure> measureHashMap = new HashMap<>();
-
-    int currentMeasureId;
     Map<Integer, List<Measurement>> measurementHashMap = new HashMap<>();
+    int currentMeasureId = -1;
 
     LineChartView lineChartView;
+    LinearLayout llDate;
     TextView tvLastMeasurementDate;
     TextView tvMeasure;
     TextView tvResult;
     TextView tvMin;
     TextView tvMax;
+    TextView tvTitleMin;
+    TextView tvTitleMax;
+    Spinner mbsMeasureType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,93 +79,44 @@ public class ChartsActivity extends AppCompatActivity {
         tvResult = (TextView) findViewById(R.id.tvResult);
         tvMin = (TextView) findViewById(R.id.tvMin);
         tvMax = (TextView) findViewById(R.id.tvMax);
+        llDate = (LinearLayout) findViewById(R.id.llDate);
+        tvTitleMin = (TextView) findViewById(R.id.tvMinTitle);
+        tvTitleMax = (TextView) findViewById(R.id.tvMaxTitle);
 
-        //TODO: MOCK RETIRAR
+        if (savedInstanceState != null) {
+            if (savedInstanceState.getSerializable(MEASURES_TYPE) != null &&
+                    savedInstanceState.getSerializable(MEASURE_HASHMAP) != null &&
+                    savedInstanceState.getSerializable(MEASUREMENT_HASHMAP) != null) {
+                measuresType = (List<String>) savedInstanceState.getSerializable(MEASURES_TYPE);
+                measureHashMap = (HashMap<Integer, Measure>) savedInstanceState.getSerializable(MEASURE_HASHMAP);
+                measurementHashMap = (Map<Integer, List<Measurement>>) savedInstanceState.getSerializable(MEASUREMENT_HASHMAP);
+            }
+            currentMeasureId = savedInstanceState.getInt(CURRENT_MEASURE_ID);
+        }
 
-//        measureList = MeasureDAO.selectAll();
-        Measure measure = new Measure();
-        measure.setId(1);
-        measure.setName("weight");
-        measure.setDescription("Peso");
-        measureHashMap.put(measure.getId(), measure);
-        measuresType.add(measure.getDescription());
+        if (measurementHashMap.isEmpty()) {
+            MeasurementDAO measurementDAO = new MeasurementDAO(this);
+            MeasureDAO measureDAO = new MeasureDAO(this);
+            List<Measure> measureList = measureDAO.selectAll();
+            for (Measure measure : measureList) {
+                measureHashMap.put(measure.getId(), measure);
+                measuresType.add(measure.getDescription());
 
-        measure = new Measure();
-        measure.setId(2);
-        measure.setName("waist");
-        measure.setDescription("Cintura");
-        measureHashMap.put(measure.getId(), measure);
-        measuresType.add(measure.getDescription());
-
-        List<Measurement> measurementListByMeasure = new ArrayList<>();
-
-        Calendar now = Calendar.getInstance();
-
-        Measurement measurement = new Measurement();
-        measurement.setId(1);
-        measurement.setMeasureId(1);
-        measurement.setValue((float) 125.5);
-        now.set(2016, 4, 1);
-        measurement.setDate(now.getTime().getTime());
-        measurementListByMeasure.add(measurement);
-
-        measurement = new Measurement();
-        measurement.setId(1);
-        measurement.setMeasureId(1);
-        measurement.setValue((float) 128.5);
-        now.set(2016, 6, 23);
-        measurement.setDate(now.getTime().getTime());
-        measurementListByMeasure.add(measurement);
-
-        measurement = new Measurement();
-        measurement.setId(1);
-        measurement.setMeasureId(1);
-        measurement.setValue((float) 100.3);
-        now.set(2016, 8, 23);
-        measurement.setDate(now.getTime().getTime());
-        measurementListByMeasure.add(measurement);
-        measurementHashMap.put(measurement.getMeasure_id(), measurementListByMeasure);
-
-        measurementListByMeasure = new ArrayList<>();
-
-        measurement = new Measurement();
-        measurement.setId(2);
-        measurement.setMeasureId(2);
-        measurement.setValue((float) 130);
-        now.set(2016, 4, 1);
-        measurement.setDate(now.getTime().getTime());
-        measurementListByMeasure.add(measurement);
-
-        measurement = new Measurement();
-        measurement.setId(2);
-        measurement.setMeasureId(2);
-        measurement.setValue((float) 120);
-        now.set(2016, 6, 2);
-        measurement.setDate(now.getTime().getTime());
-        measurementListByMeasure.add(measurement);
-
-        measurement = new Measurement();
-        measurement.setId(2);
-        measurement.setMeasureId(2);
-        measurement.setValue((float) 110);
-        now.set(2016, 9, 22);
-        measurement.setDate(now.getTime().getTime());
-        measurementListByMeasure.add(measurement);
-        measurementHashMap.put(measurement.getMeasure_id(), measurementListByMeasure);
-
-        //TODO: FIM DO MOCK
+                measurementHashMap.put(measure.getId(),
+                        measurementDAO.selectAllByMeasure(measure.getId()));
+            }
+        }
 
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line, measuresType);
 
-        Spinner mbsMeasureType =
-                (Spinner) findViewById(R.id.mbsMeasureType);
+        mbsMeasureType = (Spinner) findViewById(R.id.mbsMeasureType);
         if (mbsMeasureType != null) {
             mbsMeasureType.setAdapter(arrayAdapter);
             mbsMeasureType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    currentMeasureId = measureHashMap.get(position+1).getId();
+                    currentMeasureId = measureHashMap.get(position + 1).getId();
                     plotChart();
                 }
 
@@ -164,56 +126,101 @@ public class ChartsActivity extends AppCompatActivity {
             });
         }
 
-
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         if (fab != null) {
             fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     Intent intent = new Intent(view.getContext(), MeasurementActivity.class);
-                    intent.putExtra("MEASURES_TYPE", measureHashMap);
+                    intent.putExtra(Utils.MEASURE_TYPE, measureHashMap);
                     startActivityForResult(intent, ADD_MEASUREMENT);
                 }
             });
         }
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putSerializable(MEASURES_TYPE, (Serializable) measuresType);
+        outState.putSerializable(MEASURE_HASHMAP, measureHashMap);
+        outState.putSerializable(MEASUREMENT_HASHMAP, (Serializable) measurementHashMap);
+        outState.putInt(CURRENT_MEASURE_ID, currentMeasureId);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        measuresType = (List<String>) savedInstanceState.getSerializable(MEASURES_TYPE);
+        measureHashMap = (HashMap<Integer, Measure>) savedInstanceState.getSerializable(MEASURE_HASHMAP);
+        measurementHashMap = (Map<Integer, List<Measurement>>) savedInstanceState.getSerializable(MEASUREMENT_HASHMAP);
+        currentMeasureId = savedInstanceState.getInt(CURRENT_MEASURE_ID);
+    }
+
     private void plotChart() {
         Pair<String[], float[]> labelsAndFloat = getStringAndLabels();
-        LineSet lineSet = new LineSet(labelsAndFloat.first, labelsAndFloat.second);
+        if (labelsAndFloat != null) {
+            enableComponents(true);
+            LineSet lineSet = new LineSet(labelsAndFloat.first, labelsAndFloat.second);
 
-        lineSet.setSmooth(true);
-        lineSet.setThickness(Tools.fromDpToPx((float) 3.0));
-        lineSet.setDotsRadius(Tools.fromDpToPx((float) 3.0));
-        lineSet.setColor(ContextCompat.getColor(this, R.color.colorPrimaryDark));
-        lineSet.setDotsColor(Color.parseColor("#FFFFFF"));
-        lineSet.setDotsStrokeColor(ContextCompat.getColor(this, R.color.colorPrimaryDark));
+            lineSet.setSmooth(true);
+            lineSet.setThickness(Tools.fromDpToPx((float) 3.0));
+            lineSet.setDotsRadius(Tools.fromDpToPx((float) 3.0));
+            lineSet.setColor(ContextCompat.getColor(this, R.color.colorPrimaryDark));
+            lineSet.setDotsColor(Color.parseColor("#FFFFFF"));
+            lineSet.setDotsStrokeColor(ContextCompat.getColor(this, R.color.colorPrimaryDark));
 
-        //using WilliamChart by @dfbernardino
+            //using WilliamChart by @dfbernardino
 
-        if (lineChartView != null) {
-            lineChartView.reset();
-            lineChartView.addData(lineSet);
-            lineChartView.setAxisBorderValues((Math.round(Float.valueOf(tvMin.getText().toString()) - 1)),
-                    (Math.round(Float.valueOf(tvMax.getText().toString()) - 1) + 1));
-            lineChartView.setYAxis(false);
-            lineChartView.setXAxis(false);
+            if (lineChartView != null) {
+                lineChartView.reset();
+                lineChartView.addData(lineSet);
+                lineChartView.setAxisBorderValues((Math.round(Float.valueOf(tvMin.getText().toString()) - 1)),
+                        (Math.round(Float.valueOf(tvMax.getText().toString()) - 1) + 1));
+                lineChartView.setYAxis(false);
+                lineChartView.setXAxis(false);
 //            lineChartView.setXLabels(AxisController.LabelPosition.NONE);
-            lineChartView.setYLabels(AxisController.LabelPosition.NONE);
-            Paint gridPaint = new Paint();
-            gridPaint.setColor(Color.parseColor("#BDBDBD"));
-            gridPaint.setStyle(Paint.Style.STROKE);
-            gridPaint.setAntiAlias(true);
-            gridPaint.setStrokeWidth(Tools.fromDpToPx((float) 1.0));
-            lineChartView.setGrid(ChartView.GridType.HORIZONTAL, gridPaint);
+                lineChartView.setYLabels(AxisController.LabelPosition.NONE);
+                Paint gridPaint = new Paint();
+                gridPaint.setColor(Color.parseColor("#BDBDBD"));
+                gridPaint.setStyle(Paint.Style.STROKE);
+                gridPaint.setAntiAlias(true);
+                gridPaint.setStrokeWidth(Tools.fromDpToPx((float) 1.0));
+                lineChartView.setGrid(ChartView.GridType.HORIZONTAL, gridPaint);
 
-            Animation anim = new Animation();
-            anim.setEasing(new LinearEase());
-            anim.setDuration(500);
-            anim.setAlpha(1);
-            anim.setStartPoint((float) 0.1, (float) 0.9);
+                Animation anim = new Animation();
+                anim.setEasing(new LinearEase());
+                anim.setDuration(500);
+                anim.setAlpha(1);
+                anim.setStartPoint((float) 0.1, (float) 0.9);
 
-            lineChartView.show(anim);
+                lineChartView.show(anim);
+            }
+        } else {
+            enableComponents(false);
+        }
+    }
+
+    private void enableComponents(boolean enable) {
+        if (enable) {
+            tvLastMeasurementDate.setVisibility(View.VISIBLE);
+            tvMeasure.setVisibility(View.VISIBLE);
+            tvMin.setVisibility(View.VISIBLE);
+            tvMax.setVisibility(View.VISIBLE);
+            tvTitleMin.setVisibility(View.VISIBLE);
+            tvTitleMax.setVisibility(View.VISIBLE);
+            llDate.setVisibility(View.VISIBLE);
+            mbsMeasureType.setVisibility(View.VISIBLE);
+        } else {
+            tvLastMeasurementDate.setVisibility(View.INVISIBLE);
+            tvMeasure.setVisibility(View.INVISIBLE);
+            tvMin.setVisibility(View.INVISIBLE);
+            tvMax.setVisibility(View.INVISIBLE);
+            tvTitleMin.setVisibility(View.INVISIBLE);
+            tvTitleMax.setVisibility(View.INVISIBLE);
+            llDate.setVisibility(View.INVISIBLE);
+            mbsMeasureType.setVisibility(View.INVISIBLE);
+            tvResult.setText("Insira sua primeira medição");
         }
     }
 
@@ -235,6 +242,9 @@ public class ChartsActivity extends AppCompatActivity {
     private Pair<String[], float[]> getStringAndLabels() {
         Pair<String[], float[]> pairLabelAndValues;
         List<Measurement> measurementList = measurementHashMap.get(currentMeasureId);
+
+        if (measurementList.isEmpty()) return null;
+
         Collections.sort(measurementList);
         String[] labels = new String[measurementList.size()];
         float[] values = new float[measurementList.size()];
@@ -307,7 +317,7 @@ public class ChartsActivity extends AppCompatActivity {
         if (requestCode == ADD_MEASUREMENT) {
             if (resultCode == RESULT_OK) {
                 HashMap<Integer, List<Measurement>> measurementHashMap =
-                        (HashMap<Integer, List<Measurement>>) data.getSerializableExtra("NEW_MEASUREMENTS");
+                        (HashMap<Integer, List<Measurement>>) data.getSerializableExtra(Utils.NEW_MEASUREMENT);
                 List<Measurement> totalMeasurement;
                 for (Integer measureId : measurementHashMap.keySet()) {
                     totalMeasurement = new ArrayList<>();
