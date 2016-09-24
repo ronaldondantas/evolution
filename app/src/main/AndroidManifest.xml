@@ -20,8 +20,12 @@
         </activity>
         <activity
             android:name=".activity.MeasurementActivity"
-            android:label="Cadastrar medição"
-            android:theme="@style/AppTheme.NoActionBar"/>
+            android:label="@string/label_add_measurement"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".activity.MeasurementListActivity"
+            android:label="@string/label_measurement"
+            android:theme="@style/AppTheme.NoActionBar" />/>
     </application>
 
 </manifest>

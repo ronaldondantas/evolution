@@ -8,4 +8,6 @@
     <string name="date_default">01/01/2000</string>
     <string name="txt_date">Data</string>
     <string name="toast_no_measurement">Nenhuma medição foi incluída</string>
+    <string name="label_measurement">Medições</string>
+    <string name="label_add_measurement">Cadastrar medição</string>
 </resources>

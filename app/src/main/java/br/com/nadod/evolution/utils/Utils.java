@@ -8,4 +8,6 @@ public class Utils {
     //extras
     public static String MEASURE_TYPE = "MEASURE_TYPE";
     public static String NEW_MEASUREMENT = "NEW_MEASUREMENT";
+    public static String MEASUREMENT_LIST = "MEASUREMENT_LIST";
+    public static String MEASURE_LIST = "MEASURE_LIST";
 }

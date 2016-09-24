@@ -44,6 +44,7 @@ import br.com.nadod.evolution.utils.Utils;
 
 public class ChartsActivity extends AppCompatActivity {
     private static int ADD_MEASUREMENT = 0;
+    private static int MEASUREMENT_LIST = 1;
 
     private static String MEASURES_TYPE = "MEASURES_TYPE";
     private static String MEASURE_HASHMAP = "MEASURE_HASHMAP";
@@ -306,6 +307,11 @@ public class ChartsActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_view_list) {
+            Intent intent = new Intent(this, MeasurementListActivity.class);
+            intent.putExtra(Utils.MEASURE_LIST, measureHashMap);
+            intent.putExtra(Utils.MEASUREMENT_LIST, (Serializable) measurementHashMap);
+            intent.putExtra(Utils.MEASURE_TYPE, (Serializable) measuresType);
+            startActivityForResult(intent, MEASUREMENT_LIST);
             return true;
         }
 
