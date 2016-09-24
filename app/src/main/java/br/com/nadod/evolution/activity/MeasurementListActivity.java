@@ -6,6 +6,7 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
 
@@ -116,6 +117,16 @@ public class MeasurementListActivity extends AppCompatActivity {
         measureHashMap = (HashMap<Integer, Measure>) savedInstanceState.getSerializable(Utils.MEASURE_LIST);
         measurementList = (Map<Integer, List<Measurement>>) savedInstanceState.getSerializable(Utils.MEASUREMENT_LIST);
         measuresType = (List<String>) savedInstanceState.getSerializable(Utils.MEASURE_TYPE);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == android.R.id.home) {
+            setResult(RESULT_CANCELED);
+            finish();
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private List<MeasurementToList> getMeasurementToList(List<Measurement> measurementList) {
