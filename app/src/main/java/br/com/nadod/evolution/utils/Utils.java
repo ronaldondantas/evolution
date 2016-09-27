@@ -7,7 +7,10 @@ public class Utils {
 
     //extras
     public static String MEASURE_TYPE = "MEASURE_TYPE";
-    public static String NEW_MEASUREMENT = "NEW_MEASUREMENT";
+    public static String NEW_MEASUREMENT_LIST = "NEW_MEASUREMENT_LIST";
     public static String MEASUREMENT_LIST = "MEASUREMENT_LIST";
     public static String MEASURE_LIST = "MEASURE_LIST";
+    public static String MEASUREMENT_DATA = "MEASUREMENT_DATA";
+    public static String HAS_CHANGES = "HAS_CHANGES";
+    public static String TITLE_EDIT_MEASUREMENT = "TITLE_EDIT_MEASUREMENT";
 }

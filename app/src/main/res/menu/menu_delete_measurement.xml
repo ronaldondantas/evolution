@@ -3,8 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".activity.ChartsActivity">
     <item
-        android:id="@+id/finish"
-        android:icon="@drawable/ic_check"
+        android:id="@+id/delete"
+        android:icon="@drawable/ic_delete"
         app:showAsAction="ifRoom|collapseActionView"
-        android:title="Salvar"/>
+        android:title="Remover"/>
 </menu>

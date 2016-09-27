@@ -1,5 +1,6 @@
 package br.com.nadod.evolution.activity;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -21,10 +22,13 @@ import br.com.nadod.evolution.R;
 import br.com.nadod.evolution.adapter.MeasurementAdapter;
 import br.com.nadod.evolution.model.Measure;
 import br.com.nadod.evolution.model.Measurement;
+import br.com.nadod.evolution.model.MeasurementDAO;
 import br.com.nadod.evolution.model.MeasurementToList;
 import br.com.nadod.evolution.utils.Utils;
+import br.com.nadod.evolution.view.DividerItemDecoration;
 
 public class MeasurementListActivity extends AppCompatActivity {
+    private static int EDIT_MEASUREMENT = 0;
 
     private MeasurementAdapter measurementAdapter;
 
@@ -37,6 +41,7 @@ public class MeasurementListActivity extends AppCompatActivity {
     private Spinner mbsMeasureType;
 
     int currentMeasureId = -1;
+    private boolean hasChanges = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,11 +83,7 @@ public class MeasurementListActivity extends AppCompatActivity {
                 mbsMeasureType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        currentMeasureId = measureHashMap.get(position + 1).getId();
-                        measurementToList = getMeasurementToList(measurementList.get(currentMeasureId));
-                        Collections.sort(measurementToList);
-                        measurementAdapter.setMeasurementList(measurementToList);
-                        measurementAdapter.notifyDataSetChanged();
+                        refreshMeasurementList(measureHashMap.get(position + 1).getId());
                     }
 
                     @Override
@@ -98,9 +99,17 @@ public class MeasurementListActivity extends AppCompatActivity {
         if (recyclerView != null) {
             recyclerView.setLayoutManager(mLayoutManager);
             recyclerView.setItemAnimator(new DefaultItemAnimator());
-//            recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
+            recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
             recyclerView.setAdapter(measurementAdapter);
         }
+    }
+
+    private void refreshMeasurementList(int measureId) {
+        currentMeasureId = measureId;
+        measurementToList = getMeasurementToList(measurementList.get(currentMeasureId));
+        Collections.sort(measurementToList);
+        measurementAdapter.setMeasurementList(measurementToList);
+        measurementAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -122,11 +131,20 @@ public class MeasurementListActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == android.R.id.home) {
-            setResult(RESULT_CANCELED);
-            finish();
-        }
+        if (id == android.R.id.home) onBackPressed();
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (hasChanges) {
+            Intent intent = new Intent();
+            intent.putExtra(Utils.NEW_MEASUREMENT_LIST, (Serializable) measurementList);
+            setResult(RESULT_OK, intent);
+        } else {
+            setResult(RESULT_CANCELED);
+        }
+        finish();
     }
 
     private List<MeasurementToList> getMeasurementToList(List<Measurement> measurementList) {
@@ -143,6 +161,26 @@ public class MeasurementListActivity extends AppCompatActivity {
     }
 
     public void measurementClicked(MeasurementToList measurement) {
+        Intent intent = new Intent(this, MeasurementActivity.class);
+        intent.putExtra(Utils.MEASUREMENT_DATA, measurement);
+        intent.putExtra(Utils.TITLE_EDIT_MEASUREMENT, "Editar medição");
+        startActivityForResult(intent, EDIT_MEASUREMENT);
+    }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == EDIT_MEASUREMENT) {
+            if (resultCode == RESULT_OK) {
+                hasChanges = data.getBooleanExtra(Utils.HAS_CHANGES, false);
+                if (hasChanges) {
+                    measurementList.clear();
+                    MeasurementDAO measurementDAO = new MeasurementDAO(this);
+                    for (Integer measureId : measureHashMap.keySet())
+                        measurementList.put(measureId, measurementDAO.selectAllByMeasure(measureId));
+                    refreshMeasurementList(currentMeasureId);
+                }
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 }

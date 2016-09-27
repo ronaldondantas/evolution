@@ -20,7 +20,6 @@
         </activity>
         <activity
             android:name=".activity.MeasurementActivity"
-            android:label="@string/label_add_measurement"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".activity.MeasurementListActivity"

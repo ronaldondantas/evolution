@@ -29,7 +29,6 @@ import com.db.chart.view.animation.easing.LinearEase;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -320,19 +319,20 @@ public class ChartsActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == ADD_MEASUREMENT) {
-            if (resultCode == RESULT_OK) {
-                HashMap<Integer, List<Measurement>> measurementHashMap =
-                        (HashMap<Integer, List<Measurement>>) data.getSerializableExtra(Utils.NEW_MEASUREMENT);
-                List<Measurement> totalMeasurement;
-                for (Integer measureId : measurementHashMap.keySet()) {
-                    totalMeasurement = new ArrayList<>();
+        if (resultCode == RESULT_OK) {
+            HashMap<Integer, List<Measurement>> measurementHashMap =
+                    (HashMap<Integer, List<Measurement>>) data.getSerializableExtra(Utils.NEW_MEASUREMENT_LIST);
+            boolean hasNewMeasurement = (requestCode == ADD_MEASUREMENT);
+            if (!hasNewMeasurement) this.measurementHashMap.clear();
+            List<Measurement> totalMeasurement;
+            for (Integer measureId : measurementHashMap.keySet()) {
+                totalMeasurement = new ArrayList<>();
+                if (hasNewMeasurement)
                     totalMeasurement.addAll(this.measurementHashMap.get(measureId));
-                    totalMeasurement.addAll(measurementHashMap.get(measureId));
-                    this.measurementHashMap.put(measureId, totalMeasurement);
-                }
-                plotChart();
+                totalMeasurement.addAll(measurementHashMap.get(measureId));
+                this.measurementHashMap.put(measureId, totalMeasurement);
             }
+            plotChart();
         }
         super.onActivityResult(requestCode, resultCode, data);
     }

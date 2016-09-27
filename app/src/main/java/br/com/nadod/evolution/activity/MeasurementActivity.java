@@ -1,13 +1,16 @@
 package br.com.nadod.evolution.activity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.CursorAnchorInfo;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,6 +19,7 @@ import com.rengwuxian.materialedittext.MaterialEditText;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -24,17 +28,25 @@ import java.util.Map;
 
 import br.com.nadod.evolution.R;
 import br.com.nadod.evolution.model.Measure;
+import br.com.nadod.evolution.model.MeasureDAO;
 import br.com.nadod.evolution.model.Measurement;
 import br.com.nadod.evolution.model.MeasurementDAO;
+import br.com.nadod.evolution.model.MeasurementToList;
 import br.com.nadod.evolution.utils.Utils;
 
 public class MeasurementActivity extends AppCompatActivity
         implements DatePickerDialog.OnDateSetListener {
 
-    List<MaterialEditText> materialEditTexts;
-    MaterialEditText metDate;
+    private static String MEASUREMENT_BY_DATE = "MEASUREMENT_BY_DATE";
 
-    HashMap<Integer, Measure> measureHashMap = null;
+    private List<MaterialEditText> materialEditTexts;
+    private MaterialEditText metDate;
+
+    private HashMap<Integer, Measure> measureHashMap = new HashMap<>();
+
+    private HashMap<Integer, Measurement> measurementListByDate = new HashMap<>();
+    private MeasurementToList currentMeasurement = null;
+    private String title = "Cadastrar medição";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,13 +60,41 @@ public class MeasurementActivity extends AppCompatActivity
 
         if (savedInstanceState != null) {
             measureHashMap = (HashMap<Integer, Measure>) savedInstanceState.get(Utils.MEASURE_TYPE);
+            currentMeasurement = (MeasurementToList) savedInstanceState.getSerializable(Utils.MEASUREMENT_DATA);
+            measurementListByDate = (HashMap<Integer, Measurement>) savedInstanceState.get(MEASUREMENT_BY_DATE);
+            measurementListByDate = (HashMap<Integer, Measurement>) savedInstanceState.get(MEASUREMENT_BY_DATE);
+            if (savedInstanceState.getString(Utils.TITLE_EDIT_MEASUREMENT) != null &&
+                    !savedInstanceState.getString(Utils.TITLE_EDIT_MEASUREMENT).isEmpty()) {
+                title = savedInstanceState.getString(Utils.TITLE_EDIT_MEASUREMENT);
+            }
         } else {
             measureHashMap = (HashMap<Integer, Measure>) getIntent().getSerializableExtra(Utils.MEASURE_TYPE);
+            currentMeasurement = (MeasurementToList) getIntent().getSerializableExtra(Utils.MEASUREMENT_DATA);
+            if (getIntent().getStringExtra(Utils.TITLE_EDIT_MEASUREMENT) != null &&
+                    !getIntent().getStringExtra(Utils.TITLE_EDIT_MEASUREMENT).isEmpty()) {
+                title = getIntent().getStringExtra(Utils.TITLE_EDIT_MEASUREMENT);
+            }
+        }
+
+        setTitle(title);
+
+        if (measureHashMap == null || measureHashMap.isEmpty()) {
+            measureHashMap = new HashMap<>();
+            MeasureDAO measureDAO = new MeasureDAO(this);
+            List<Measure> measureList = measureDAO.selectAll();
+            for (Measure measure : measureList) measureHashMap.put(measure.getId(), measure);
+        }
+
+        long date = -1;
+        if (currentMeasurement != null && measurementListByDate.isEmpty()) {
+            MeasurementDAO measurementDAO = new MeasurementDAO(this);
+            date = currentMeasurement.getDate();
+            measurementListByDate = measurementDAO.selectAllByDate(date);
         }
 
         LinearLayout llMeasureType = (LinearLayout) findViewById(R.id.llMeasureType);
         if (llMeasureType != null) {
-            addMetDate(llMeasureType);
+            addMetDate(llMeasureType, date);
             materialEditTexts = new ArrayList<>();
             TextView tvMeasureType;
             MaterialEditText materialEditText;
@@ -74,6 +114,11 @@ public class MeasurementActivity extends AppCompatActivity
                 materialEditText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
                 materialEditText.setTextSize((float) 18);
                 materialEditText.setTag(measure.getId());
+                if (!measurementListByDate.isEmpty()) {
+                    Measurement measurement = measurementListByDate.get(measure.getId());
+                    if (measurement != null)
+                        materialEditText.setText(String.valueOf(measurement.getValue()));
+                }
 
                 llMeasureType.addView(materialEditText);
                 materialEditTexts.add(materialEditText);
@@ -101,7 +146,23 @@ public class MeasurementActivity extends AppCompatActivity
         }
     }
 
-    private void addMetDate(LinearLayout llMeasureType) {
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putSerializable(MEASUREMENT_BY_DATE, measurementListByDate);
+        outState.putSerializable(Utils.MEASURE_TYPE, measureHashMap);
+        outState.putSerializable(Utils.MEASUREMENT_DATA, currentMeasurement);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        measurementListByDate = (HashMap<Integer, Measurement>) savedInstanceState.get(MEASUREMENT_BY_DATE);
+        measureHashMap = (HashMap<Integer, Measure>) savedInstanceState.get(Utils.MEASURE_TYPE);
+        currentMeasurement = (MeasurementToList) savedInstanceState.getSerializable(Utils.MEASUREMENT_DATA);
+    }
+
+    private void addMetDate(LinearLayout llMeasureType, long date) {
         TextView tvMeasureType;
         tvMeasureType = new TextView(this);
         tvMeasureType.setLayoutParams(new LinearLayout.LayoutParams(
@@ -117,13 +178,21 @@ public class MeasurementActivity extends AppCompatActivity
                 LinearLayout.LayoutParams.WRAP_CONTENT));
         metDate.setTextSize((float) 18);
 
+        if (date != -1) {
+            SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+            metDate.setText(format.format(date));
+        }
+
         llMeasureType.addView(metDate);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_measurement, menu);
+        if (!measurementListByDate.isEmpty()) {
+            getMenuInflater().inflate(R.menu.menu_delete_measurement, menu);
+            return true;
+        }
         return true;
     }
 
@@ -135,52 +204,72 @@ public class MeasurementActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.finish) {
-            Map<Integer, List<Measurement>> measurementHashMap = new HashMap<>();
-
-            Calendar chosenDate = Calendar.getInstance();
-            String txtDate = metDate.getText().toString();
-            String[] dateSplit = txtDate.split("/");
-            String day = dateSplit[0];
-            String month = dateSplit[1];
-            String year = dateSplit[2];
-            chosenDate.set(Integer.valueOf(year), Integer.valueOf(month)-1, Integer.valueOf(day));
-
-            Measurement measurement;
-            for (MaterialEditText metMeasure : materialEditTexts) {
-                if (metMeasure.getText().toString().isEmpty()) continue;
-                List<Measurement> measurementList = new ArrayList<>();
-                measurement = new Measurement();
-                measurement.setDate(chosenDate.getTime().getTime());
-                measurement.setMeasureId((int) metMeasure.getTag());
-                measurement.setValue(Float.valueOf(metMeasure.getText().toString()));
-
-                measurementList.add(measurement);
-                measurementHashMap.put(measurement.getMeasure_id(), measurementList);
-            }
-            if (!measurementHashMap.isEmpty()) {
-                MeasurementDAO measurementDAO = new MeasurementDAO(this);
-                measurementDAO.insertAll(measurementHashMap);
-                Intent intent = new Intent();
-                intent.putExtra(Utils.NEW_MEASUREMENT, (Serializable) measurementHashMap);
-                setResult(RESULT_OK, intent);
-                finish();
-            } else {
-                Toast.makeText(this, R.string.toast_no_measurement, Toast.LENGTH_LONG).show();
-            }
-            return true;
+        if (id == R.id.delete) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage("Deseja realmente excluir essa medição?")
+                    .setPositiveButton("Sim", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            MeasurementDAO measurementDAO = new MeasurementDAO(getApplicationContext());
+                            measurementDAO.delete(currentMeasurement.getId());
+                            onBackPressed();
+                        }
+                    })
+                    .setNegativeButton("Não", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                        }
+                    }).create().show();
         } else if (id == android.R.id.home) {
-            setResult(RESULT_CANCELED);
-            finish();
+            onBackPressed();
         }
         return super.onOptionsItemSelected(item);
     }
 
     @Override
     public void onBackPressed() {
-        setResult(RESULT_CANCELED);
-        finish();
-        super.onBackPressed();
+        Map<Integer, List<Measurement>> measurementHashMap = new HashMap<>();
+
+        Calendar chosenDate = Calendar.getInstance();
+        String txtDate = metDate.getText().toString();
+        String[] dateSplit = txtDate.split("/");
+        String day = dateSplit[0];
+        String month = dateSplit[1];
+        String year = dateSplit[2];
+        chosenDate.set(Integer.valueOf(year), Integer.valueOf(month)-1, Integer.valueOf(day));
+
+        Measurement measurement;
+        for (MaterialEditText metMeasure : materialEditTexts) {
+            if (metMeasure.getText().toString().isEmpty()) continue;
+            List<Measurement> measurementList = new ArrayList<>();
+            measurement = new Measurement();
+            measurement.setDate(chosenDate.getTime().getTime());
+            measurement.setMeasureId((int) metMeasure.getTag());
+            measurement.setValue(Float.valueOf(metMeasure.getText().toString()));
+
+            if (!measurementListByDate.isEmpty()) {
+                measurement.setId(measurementListByDate.get(measurement.getMeasure_id()).getId());
+            }
+
+            measurementList.add(measurement);
+            measurementHashMap.put(measurement.getMeasure_id(), measurementList);
+        }
+        if (!measurementHashMap.isEmpty()) {
+            MeasurementDAO measurementDAO = new MeasurementDAO(this);
+            boolean hasChanges = false;
+            if (measurementListByDate.isEmpty()) {
+                measurementDAO.insertAll(measurementHashMap);
+            } else {
+                hasChanges = true;
+                measurementDAO.updateAll(measurementHashMap);
+            }
+            Intent intent = new Intent();
+            intent.putExtra(Utils.NEW_MEASUREMENT_LIST, (Serializable) measurementHashMap);
+            intent.putExtra(Utils.HAS_CHANGES, hasChanges);
+            setResult(RESULT_OK, intent);
+            finish();
+        } else {
+            setResult(RESULT_CANCELED);
+            finish();
+        }
     }
 
     @Override

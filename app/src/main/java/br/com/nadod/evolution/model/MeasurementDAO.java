@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -61,6 +62,35 @@ public class MeasurementDAO {
         }
     }
 
+    public void updateAll(Map<Integer, List<Measurement>> measurementMap)
+    {
+        for (List<Measurement> measurementList : measurementMap.values()) {
+            for (Measurement measurement : measurementList) {
+                update(measurement);
+            }
+        }
+    }
+
+    public int update(Measurement measurement) {
+        ContentValues values = new ContentValues();
+
+        values.put("measure_id", measurement.getMeasure_id());
+        values.put("value", measurement.getValue());
+        values.put("date", measurement.getDate());
+
+        db = dbHelper.getWritableDatabase();
+        int code = db.update(Utils.TABLE_MEASUREMENT, values, "id=" + measurement.getId(), null);
+        db.close();
+        return code;
+    }
+
+    public int delete(int id) {
+        db = dbHelper.getWritableDatabase();
+        int code = db.delete(Utils.TABLE_MEASUREMENT, "id=" + id, null);
+        db.close();
+        return code;
+    }
+
     public List<Measurement> selectAllByMeasure(int measure_id){
         List<Measurement> measurementList = new ArrayList<>();
         db = dbHelper.getReadableDatabase();
@@ -84,6 +114,38 @@ public class MeasurementDAO {
                         measurement.setValue(value);
                         measurement.setDate(date);
                         measurementList.add(measurement);
+                    } while (cursor.moveToNext());
+                }
+            } finally {
+                cursor.close();
+            }
+        }
+        return measurementList;
+    }
+
+    public HashMap<Integer, Measurement> selectAllByDate(long dateParam){
+        HashMap<Integer, Measurement> measurementList = new HashMap<>();
+        db = dbHelper.getReadableDatabase();
+
+        Cursor cursor = db.rawQuery("SELECT * FROM " + Utils.TABLE_MEASUREMENT +
+                " WHERE date=?;", new String[]{String.valueOf(dateParam)});
+
+        if (cursor != null) {
+            try {
+                if (cursor.getCount() > 0 && cursor.moveToFirst()) {
+                    Measurement measurement;
+                    do {
+                        int id = cursor.getInt(cursor.getColumnIndex("id"));
+                        int measureId = cursor.getInt(cursor.getColumnIndex("measure_id"));
+                        float value = cursor.getFloat(cursor.getColumnIndex("value"));
+                        long date = cursor.getLong(cursor.getColumnIndex("date"));
+
+                        measurement = new Measurement();
+                        measurement.setId(id);
+                        measurement.setMeasureId(measureId);
+                        measurement.setValue(value);
+                        measurement.setDate(date);
+                        measurementList.put(measureId, measurement);
                     } while (cursor.moveToNext());
                 }
             } finally {
