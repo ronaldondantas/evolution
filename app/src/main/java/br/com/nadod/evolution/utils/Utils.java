@@ -13,4 +13,5 @@ public class Utils {
     public static String MEASUREMENT_DATA = "MEASUREMENT_DATA";
     public static String HAS_CHANGES = "HAS_CHANGES";
     public static String TITLE_EDIT_MEASUREMENT = "TITLE_EDIT_MEASUREMENT";
+    public static String MET_TEXT = "MET_TEXT";
 }

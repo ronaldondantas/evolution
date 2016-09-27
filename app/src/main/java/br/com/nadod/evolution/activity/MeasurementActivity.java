@@ -6,14 +6,14 @@ import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
 import android.text.InputType;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.inputmethod.CursorAnchorInfo;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.rengwuxian.materialedittext.MaterialEditText;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
@@ -46,7 +46,9 @@ public class MeasurementActivity extends AppCompatActivity
 
     private HashMap<Integer, Measurement> measurementListByDate = new HashMap<>();
     private MeasurementToList currentMeasurement = null;
+
     private String title = "Cadastrar medição";
+    private HashMap<Integer, String> metText = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,12 +69,18 @@ public class MeasurementActivity extends AppCompatActivity
                     !savedInstanceState.getString(Utils.TITLE_EDIT_MEASUREMENT).isEmpty()) {
                 title = savedInstanceState.getString(Utils.TITLE_EDIT_MEASUREMENT);
             }
+            if (savedInstanceState.getSerializable(Utils.MET_TEXT) != null) {
+                metText = (HashMap<Integer, String>) savedInstanceState.getSerializable(Utils.MET_TEXT);
+            }
         } else {
             measureHashMap = (HashMap<Integer, Measure>) getIntent().getSerializableExtra(Utils.MEASURE_TYPE);
             currentMeasurement = (MeasurementToList) getIntent().getSerializableExtra(Utils.MEASUREMENT_DATA);
             if (getIntent().getStringExtra(Utils.TITLE_EDIT_MEASUREMENT) != null &&
                     !getIntent().getStringExtra(Utils.TITLE_EDIT_MEASUREMENT).isEmpty()) {
                 title = getIntent().getStringExtra(Utils.TITLE_EDIT_MEASUREMENT);
+            }
+            if (getIntent().getStringExtra(Utils.MET_TEXT) != null) {
+                metText = (HashMap<Integer, String>) getIntent().getSerializableExtra(Utils.MET_TEXT);
             }
         }
 
@@ -98,7 +106,7 @@ public class MeasurementActivity extends AppCompatActivity
             materialEditTexts = new ArrayList<>();
             TextView tvMeasureType;
             MaterialEditText materialEditText;
-            for (Measure measure : measureHashMap.values()) {
+            for (final Measure measure : measureHashMap.values()) {
                 tvMeasureType = new TextView(this);
                 tvMeasureType.setLayoutParams(new LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -117,8 +125,25 @@ public class MeasurementActivity extends AppCompatActivity
                 if (!measurementListByDate.isEmpty()) {
                     Measurement measurement = measurementListByDate.get(measure.getId());
                     if (measurement != null)
-                        materialEditText.setText(String.valueOf(measurement.getValue()));
+                        metText.put(measure.getId(), String.valueOf(measurement.getValue()));
                 }
+                materialEditText.setText(metText.get(measure.getId()));
+                materialEditText.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+                        metText.put(measure.getId(), s.toString());
+                    }
+                });
 
                 llMeasureType.addView(materialEditText);
                 materialEditTexts.add(materialEditText);
@@ -151,6 +176,8 @@ public class MeasurementActivity extends AppCompatActivity
         outState.putSerializable(MEASUREMENT_BY_DATE, measurementListByDate);
         outState.putSerializable(Utils.MEASURE_TYPE, measureHashMap);
         outState.putSerializable(Utils.MEASUREMENT_DATA, currentMeasurement);
+        outState.putString(Utils.TITLE_EDIT_MEASUREMENT, title);
+        outState.putSerializable(Utils.MET_TEXT, metText);
         super.onSaveInstanceState(outState);
     }
 
@@ -160,6 +187,8 @@ public class MeasurementActivity extends AppCompatActivity
         measurementListByDate = (HashMap<Integer, Measurement>) savedInstanceState.get(MEASUREMENT_BY_DATE);
         measureHashMap = (HashMap<Integer, Measure>) savedInstanceState.get(Utils.MEASURE_TYPE);
         currentMeasurement = (MeasurementToList) savedInstanceState.getSerializable(Utils.MEASUREMENT_DATA);
+        title = savedInstanceState.getString(Utils.TITLE_EDIT_MEASUREMENT);
+        metText = (HashMap<Integer, String>) savedInstanceState.getSerializable(Utils.MET_TEXT);
     }
 
     private void addMetDate(LinearLayout llMeasureType, long date) {
