@@ -107,46 +107,48 @@ public class MeasurementActivity extends AppCompatActivity
             TextView tvMeasureType;
             MaterialEditText materialEditText;
             for (final Measure measure : measureHashMap.values()) {
-                tvMeasureType = new TextView(this);
-                tvMeasureType.setLayoutParams(new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT));
-                tvMeasureType.setTextSize((float) 18);
-                tvMeasureType.setText(measure.getDescription());
-                llMeasureType.addView(tvMeasureType);
+                if (currentMeasurement == null || currentMeasurement.getMeasure_id() == measure.getId()) {
+                    tvMeasureType = new TextView(this);
+                    tvMeasureType.setLayoutParams(new LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT));
+                    tvMeasureType.setTextSize((float) 18);
+                    tvMeasureType.setText(measure.getDescription());
+                    llMeasureType.addView(tvMeasureType);
 
-                materialEditText = new MaterialEditText(this);
-                materialEditText.setLayoutParams(new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT));
-                materialEditText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-                materialEditText.setTextSize((float) 18);
-                materialEditText.setTag(measure.getId());
-                if (!measurementListByDate.isEmpty()) {
-                    Measurement measurement = measurementListByDate.get(measure.getId());
-                    if (measurement != null)
-                        metText.put(measure.getId(), String.valueOf(measurement.getValue()));
+                    materialEditText = new MaterialEditText(this);
+                    materialEditText.setLayoutParams(new LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT));
+                    materialEditText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                    materialEditText.setTextSize((float) 18);
+                    materialEditText.setTag(measure.getId());
+                    if (!measurementListByDate.isEmpty()) {
+                        Measurement measurement = measurementListByDate.get(measure.getId());
+                        if (measurement != null)
+                            metText.put(measure.getId(), String.valueOf(measurement.getValue()));
+                    }
+                    materialEditText.setText(metText.get(measure.getId()));
+                    materialEditText.addTextChangedListener(new TextWatcher() {
+                        @Override
+                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                        }
+
+                        @Override
+                        public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                        }
+
+                        @Override
+                        public void afterTextChanged(Editable s) {
+                            metText.put(measure.getId(), s.toString());
+                        }
+                    });
+
+                    llMeasureType.addView(materialEditText);
+                    materialEditTexts.add(materialEditText);
                 }
-                materialEditText.setText(metText.get(measure.getId()));
-                materialEditText.addTextChangedListener(new TextWatcher() {
-                    @Override
-                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-                    }
-
-                    @Override
-                    public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-                    }
-
-                    @Override
-                    public void afterTextChanged(Editable s) {
-                        metText.put(measure.getId(), s.toString());
-                    }
-                });
-
-                llMeasureType.addView(materialEditText);
-                materialEditTexts.add(materialEditText);
             }
         }
 
@@ -156,7 +158,7 @@ public class MeasurementActivity extends AppCompatActivity
         String dateNow = now.get(Calendar.DAY_OF_MONTH) +"/"+ (now.get(Calendar.MONTH)+1) + "/" +
                 now.get(Calendar.YEAR);
         if (metDate != null) {
-            metDate.setText(dateNow);
+            if (date == -1) metDate.setText(dateNow);
             metDate.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

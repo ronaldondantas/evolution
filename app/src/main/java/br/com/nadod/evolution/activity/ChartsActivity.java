@@ -313,8 +313,7 @@ public class ChartsActivity extends AppCompatActivity {
             startActivityForResult(intent, MEASUREMENT_LIST);
             return true;
         }
-
-        return super.onOptionsItemSelected(item);
+        return false;
     }
 
     @Override
