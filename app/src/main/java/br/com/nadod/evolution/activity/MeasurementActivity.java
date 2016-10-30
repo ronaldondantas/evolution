@@ -22,9 +22,11 @@ import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 import br.com.nadod.evolution.R;
 import br.com.nadod.evolution.model.Measure;
@@ -49,6 +51,9 @@ public class MeasurementActivity extends AppCompatActivity
 
     private String title = "Cadastrar medição";
     private HashMap<Integer, String> metText = new HashMap<>();
+    private long currentDate = -1;
+
+    private boolean hasChanges = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +69,8 @@ public class MeasurementActivity extends AppCompatActivity
             measureHashMap = (HashMap<Integer, Measure>) savedInstanceState.get(Utils.MEASURE_TYPE);
             currentMeasurement = (MeasurementToList) savedInstanceState.getSerializable(Utils.MEASUREMENT_DATA);
             measurementListByDate = (HashMap<Integer, Measurement>) savedInstanceState.get(MEASUREMENT_BY_DATE);
-            measurementListByDate = (HashMap<Integer, Measurement>) savedInstanceState.get(MEASUREMENT_BY_DATE);
+            hasChanges = savedInstanceState.getBoolean(Utils.CHANGING);
+            currentDate = savedInstanceState.getLong(Utils.CURRENT_DATE);
             if (savedInstanceState.getString(Utils.TITLE_EDIT_MEASUREMENT) != null &&
                     !savedInstanceState.getString(Utils.TITLE_EDIT_MEASUREMENT).isEmpty()) {
                 title = savedInstanceState.getString(Utils.TITLE_EDIT_MEASUREMENT);
@@ -94,10 +100,18 @@ public class MeasurementActivity extends AppCompatActivity
         }
 
         long date = -1;
-        if (currentMeasurement != null && measurementListByDate.isEmpty()) {
+        if (currentMeasurement != null) {
             MeasurementDAO measurementDAO = new MeasurementDAO(this);
-            date = currentMeasurement.getDate();
-            measurementListByDate = measurementDAO.selectAllByDate(date);
+            if (currentDate == -1) {
+                date = currentMeasurement.getDate();
+                currentDate = date;
+            } else {
+                date = currentDate;
+            }
+
+            if (measurementListByDate.isEmpty()) {
+                measurementListByDate = measurementDAO.selectAllByDate(date);
+            }
         }
 
         LinearLayout llMeasureType = (LinearLayout) findViewById(R.id.llMeasureType);
@@ -123,7 +137,7 @@ public class MeasurementActivity extends AppCompatActivity
                     materialEditText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
                     materialEditText.setTextSize((float) 18);
                     materialEditText.setTag(measure.getId());
-                    if (!measurementListByDate.isEmpty()) {
+                    if (metText.isEmpty() && !measurementListByDate.isEmpty()) {
                         Measurement measurement = measurementListByDate.get(measure.getId());
                         if (measurement != null)
                             metText.put(measure.getId(), String.valueOf(measurement.getValue()));
@@ -142,6 +156,7 @@ public class MeasurementActivity extends AppCompatActivity
 
                         @Override
                         public void afterTextChanged(Editable s) {
+                            hasChanges = (s.toString().compareTo(metText.get(measure.getId())) != 0);
                             metText.put(measure.getId(), s.toString());
                         }
                     });
@@ -158,7 +173,7 @@ public class MeasurementActivity extends AppCompatActivity
         String dateNow = now.get(Calendar.DAY_OF_MONTH) +"/"+ (now.get(Calendar.MONTH)+1) + "/" +
                 now.get(Calendar.YEAR);
         if (metDate != null) {
-            if (date == -1) metDate.setText(dateNow);
+            if (date == -1 && !hasChanges) metDate.setText(dateNow);
             metDate.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -170,27 +185,79 @@ public class MeasurementActivity extends AppCompatActivity
                     dpd.show(getFragmentManager(), "DatePickerDialog");
                 }
             });
+            metDate.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                }
+
+                @Override
+                public void afterTextChanged(Editable editable) {
+                    if (currentMeasurement != null) {
+                        Calendar calendar = Calendar.getInstance();
+                        Date date = new Date();
+                        date.setTime(currentMeasurement.getDate());
+                        calendar.setTime(date);
+                        calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
+                        String dateNow = calendar.get(Calendar.DAY_OF_MONTH) + "/" +
+                                (calendar.get(Calendar.MONTH)+1) + "/" +
+                                calendar.get(Calendar.YEAR);
+                        hasChanges = (editable.toString().compareTo(dateNow) != 0);
+
+                        Calendar chosenDate = Calendar.getInstance();
+                        String txtDate = editable.toString();
+                        String[] dateSplit = txtDate.split("/");
+                        String day = dateSplit[0];
+                        String month = dateSplit[1];
+                        String year = dateSplit[2];
+                        chosenDate.set(Integer.valueOf(year), Integer.valueOf(month)-1, Integer.valueOf(day));
+                        currentDate = chosenDate.getTime().getTime();
+                    } else {
+                        hasChanges = true;
+                    }
+                }
+            });
+        }
+        if (currentDate != -1) {
+            Calendar calendar = Calendar.getInstance();
+            Date curDate = new Date();
+            curDate.setTime(currentDate);
+            calendar.setTime(curDate);
+            calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
+            String curDateTxt = calendar.get(Calendar.DAY_OF_MONTH) + "/" +
+                    (calendar.get(Calendar.MONTH)+1) + "/" +
+                    calendar.get(Calendar.YEAR);
+            metDate.setText(curDateTxt);
         }
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
+        outState.putSerializable(Utils.MEASUREMENT_DATA, currentMeasurement);
         outState.putSerializable(MEASUREMENT_BY_DATE, measurementListByDate);
         outState.putSerializable(Utils.MEASURE_TYPE, measureHashMap);
-        outState.putSerializable(Utils.MEASUREMENT_DATA, currentMeasurement);
         outState.putString(Utils.TITLE_EDIT_MEASUREMENT, title);
         outState.putSerializable(Utils.MET_TEXT, metText);
+        outState.putBoolean(Utils.CHANGING, hasChanges);
+        outState.putLong(Utils.CURRENT_DATE, currentDate);
         super.onSaveInstanceState(outState);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
+        currentMeasurement = (MeasurementToList) savedInstanceState.getSerializable(Utils.MEASUREMENT_DATA);
         measurementListByDate = (HashMap<Integer, Measurement>) savedInstanceState.get(MEASUREMENT_BY_DATE);
         measureHashMap = (HashMap<Integer, Measure>) savedInstanceState.get(Utils.MEASURE_TYPE);
-        currentMeasurement = (MeasurementToList) savedInstanceState.getSerializable(Utils.MEASUREMENT_DATA);
         title = savedInstanceState.getString(Utils.TITLE_EDIT_MEASUREMENT);
         metText = (HashMap<Integer, String>) savedInstanceState.getSerializable(Utils.MET_TEXT);
+        hasChanges = savedInstanceState.getBoolean(Utils.CHANGING);
+        currentDate = savedInstanceState.getLong(Utils.CURRENT_DATE);
     }
 
     private void addMetDate(LinearLayout llMeasureType, long date) {
@@ -209,9 +276,10 @@ public class MeasurementActivity extends AppCompatActivity
                 LinearLayout.LayoutParams.WRAP_CONTENT));
         metDate.setTextSize((float) 18);
 
-        if (date != -1) {
+        if (date != -1 && !hasChanges) {
             SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
             metDate.setText(format.format(date));
+            currentDate = date;
         }
 
         llMeasureType.addView(metDate);
@@ -285,11 +353,9 @@ public class MeasurementActivity extends AppCompatActivity
         }
         if (!measurementHashMap.isEmpty()) {
             MeasurementDAO measurementDAO = new MeasurementDAO(this);
-            boolean hasChanges = false;
             if (measurementListByDate.isEmpty()) {
                 measurementDAO.insertAll(measurementHashMap);
-            } else {
-                hasChanges = true;
+            } else if (hasChanges) {
                 measurementDAO.updateAll(measurementHashMap);
             }
             Intent intent = new Intent();

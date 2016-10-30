@@ -99,7 +99,6 @@ public class MeasurementListActivity extends AppCompatActivity {
         if (recyclerView != null) {
             recyclerView.setLayoutManager(mLayoutManager);
             recyclerView.setItemAnimator(new DefaultItemAnimator());
-            recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
             recyclerView.setAdapter(measurementAdapter);
         }
     }
