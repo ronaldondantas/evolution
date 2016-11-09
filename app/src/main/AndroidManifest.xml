@@ -26,6 +26,9 @@
             android:name=".activity.MeasurementListActivity"
             android:label="@string/label_measurement"
             android:theme="@style/AppTheme.NoActionBar" />/>
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="8d958bf7822e5af047701eddcde3c2e8f744b14a" />
     </application>
 
 </manifest>
