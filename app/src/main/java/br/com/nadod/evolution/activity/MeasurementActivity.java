@@ -15,6 +15,9 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
 import com.rengwuxian.materialedittext.MaterialEditText;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
@@ -55,6 +58,8 @@ public class MeasurementActivity extends AppCompatActivity
 
     private boolean hasChanges = false;
 
+    private AdView mAdView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,6 +69,14 @@ public class MeasurementActivity extends AppCompatActivity
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
+
+        MobileAds.initialize(this, getString(R.string.banner_ad_unit_id));
+
+        mAdView = (AdView) findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder()
+                .addTestDevice(getString(R.string.banner_ad_unit_id_test))
+                .build();
+        if (mAdView != null) mAdView.loadAd(adRequest);
 
         if (savedInstanceState != null) {
             measureHashMap = (HashMap<Integer, Measure>) savedInstanceState.get(Utils.MEASURE_TYPE);
@@ -156,7 +169,9 @@ public class MeasurementActivity extends AppCompatActivity
 
                         @Override
                         public void afterTextChanged(Editable s) {
-                            hasChanges = (s.toString().compareTo(metText.get(measure.getId())) != 0);
+                            if (!metText.isEmpty() && metText.get(measure.getId()) != null) {
+                                hasChanges = (s.toString().compareTo(metText.get(measure.getId())) != 0);
+                            }
                             metText.put(measure.getId(), s.toString());
                         }
                     });
@@ -373,5 +388,32 @@ public class MeasurementActivity extends AppCompatActivity
     public void onDateSet(DatePickerDialog view, int year, int monthOfYear, int dayOfMonth) {
         String chosenDate = dayOfMonth+"/"+(monthOfYear+1)+"/"+year;
         if (metDate != null) metDate.setText(chosenDate);
+    }
+
+    /** Called when leaving the activity */
+    @Override
+    public void onPause() {
+        if (mAdView != null) {
+            mAdView.pause();
+        }
+        super.onPause();
+    }
+
+    /** Called when returning to the activity */
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mAdView != null) {
+            mAdView.resume();
+        }
+    }
+
+    /** Called before the activity is destroyed */
+    @Override
+    public void onDestroy() {
+        if (mAdView != null) {
+            mAdView.destroy();
+        }
+        super.onDestroy();
     }
 }

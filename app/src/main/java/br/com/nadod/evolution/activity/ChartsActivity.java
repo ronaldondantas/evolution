@@ -25,6 +25,10 @@ import com.db.chart.view.ChartView;
 import com.db.chart.view.LineChartView;
 import com.db.chart.view.animation.Animation;
 import com.db.chart.view.animation.easing.LinearEase;
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.InterstitialAd;
+import com.google.android.gms.ads.MobileAds;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
@@ -66,12 +70,32 @@ public class ChartsActivity extends AppCompatActivity {
     TextView tvTitleMax;
     Spinner mbsMeasureType;
 
+    private InterstitialAd mInterstitialAd;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_charts);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        MobileAds.initialize(this, getString(R.string.interstitial_ad_unit_id));
+
+        mInterstitialAd = new InterstitialAd(this);
+        mInterstitialAd.setAdUnitId(getString(R.string.interstitial_ad_unit_id));
+
+        mInterstitialAd.setAdListener(new AdListener() {
+            @Override
+            public void onAdClosed() {
+                requestNewInterstitial();
+            }
+        });
+
+        requestNewInterstitial();
+
+        if (mInterstitialAd.isLoaded()) {
+            mInterstitialAd.show();
+        }
 
         lineChartView = (LineChartView) findViewById(R.id.chart);
         tvLastMeasurementDate = (TextView) findViewById(R.id.tvDate);
@@ -131,12 +155,39 @@ public class ChartsActivity extends AppCompatActivity {
             fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    showInterstitial();
                     Intent intent = new Intent(view.getContext(), MeasurementActivity.class);
                     intent.putExtra(Utils.MEASURE_TYPE, measureHashMap);
                     startActivityForResult(intent, ADD_MEASUREMENT);
                 }
             });
         }
+
+        loadInterstitial();
+    }
+
+    private void showInterstitial() {
+        // Show the ad if it's ready. Otherwise toast and restart the game.
+        if (mInterstitialAd != null && mInterstitialAd.isLoaded()) {
+            mInterstitialAd.show();
+        } else {
+            loadInterstitial();
+        }
+    }
+
+    private void loadInterstitial() {
+        // Request a new ad if one isn't already loaded, hide the button, and kick off the timer.
+        if (!mInterstitialAd.isLoading() && !mInterstitialAd.isLoaded()) {
+            AdRequest adRequest = new AdRequest.Builder().build();
+            mInterstitialAd.loadAd(adRequest);
+        }
+    }
+
+    private void requestNewInterstitial() {
+        AdRequest adRequest = new AdRequest.Builder()
+                .addTestDevice(getString(R.string.banner_ad_unit_id_test))
+                .build();
+        mInterstitialAd.loadAd(adRequest);
     }
 
     @Override
@@ -306,6 +357,7 @@ public class ChartsActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_view_list) {
+            showInterstitial();
             Intent intent = new Intent(this, MeasurementListActivity.class);
             intent.putExtra(Utils.MEASURE_LIST, measureHashMap);
             intent.putExtra(Utils.MEASUREMENT_LIST, (Serializable) measurementHashMap);

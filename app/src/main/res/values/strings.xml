@@ -10,4 +10,7 @@
     <string name="toast_no_measurement">Nenhuma medição foi incluída</string>
     <string name="label_measurement">Medições</string>
     <string name="label_add_measurement">Cadastrar medição</string>
+    <string name="interstitial_ad_unit_id">ca-app-pub-4742990886313740/7474571711</string>
+    <string name="banner_ad_unit_id">ca-app-pub-4742990886313740/7195370113</string>
+    <string name="banner_ad_unit_id_test">9974375913FEA04A8D547ADDDC0A0E0C</string>
 </resources>

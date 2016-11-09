@@ -1,15 +1,17 @@
 package br.com.nadod.evolution.activity;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.*;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -25,7 +27,6 @@ import br.com.nadod.evolution.model.Measurement;
 import br.com.nadod.evolution.model.MeasurementDAO;
 import br.com.nadod.evolution.model.MeasurementToList;
 import br.com.nadod.evolution.utils.Utils;
-import br.com.nadod.evolution.view.DividerItemDecoration;
 
 public class MeasurementListActivity extends AppCompatActivity {
     private static int EDIT_MEASUREMENT = 0;
