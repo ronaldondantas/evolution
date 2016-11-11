@@ -243,7 +243,6 @@ public class MeasurementActivity extends AppCompatActivity
             Date curDate = new Date();
             curDate.setTime(currentDate);
             calendar.setTime(curDate);
-            calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
             String curDateTxt = calendar.get(Calendar.DAY_OF_MONTH) + "/" +
                     (calendar.get(Calendar.MONTH)+1) + "/" +
                     calendar.get(Calendar.YEAR);
