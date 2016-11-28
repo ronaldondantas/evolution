@@ -281,7 +281,9 @@ public class ChartsActivity extends AppCompatActivity {
     private void refreshValues(double minValue, double maxValue, double lastMeasure, double result,
                                String dateLastMeasure) {
         tvLastMeasurementDate.setText(dateLastMeasure);
-        String textMeasure = String.format("%.1f", lastMeasure) + " kg";
+        String unit = measureHashMap.get(currentMeasureId).getName().compareTo("weight") == 0 ?
+                "kg" : "cm";
+        String textMeasure = String.format("%.1f", lastMeasure) + " " + unit;
         tvMeasure.setText(textMeasure);
 
         String txtResult;

@@ -91,7 +91,10 @@ public class MeasurementAdapter extends RecyclerView.Adapter<MeasurementAdapter.
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT, (float) 0.1));
         tvMeasure.setTextSize((float) 30);
-        tvMeasure.setText(String.format("%.1f", measurement.getValue()) + " kg");
+
+        String unit = measureHashMap.get(measurement.getMeasure_id()).getName()
+                .compareTo("weight") == 0 ? "kg" : "cm";
+        tvMeasure.setText(String.format("%.1f", measurement.getValue()) + " " + unit);
         holder.llMeasureAndResult.addView(tvMeasure);
 
         tvResult = new TextView(holder.context);
