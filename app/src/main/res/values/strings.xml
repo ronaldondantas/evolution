@@ -13,4 +13,7 @@
     <string name="interstitial_ad_unit_id">ca-app-pub-4742990886313740/7474571711</string>
     <string name="banner_ad_unit_id">ca-app-pub-4742990886313740/7195370113</string>
     <string name="banner_ad_unit_id_test">9974375913FEA04A8D547ADDDC0A0E0C</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

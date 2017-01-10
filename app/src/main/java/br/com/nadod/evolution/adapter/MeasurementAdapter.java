@@ -14,7 +14,9 @@ import java.util.HashMap;
 import java.util.List;
 
 import br.com.nadod.evolution.R;
+import br.com.nadod.evolution.activity.MainActivity;
 import br.com.nadod.evolution.activity.MeasurementListActivity;
+import br.com.nadod.evolution.fragment.MeasurementListFragment;
 import br.com.nadod.evolution.model.Measure;
 import br.com.nadod.evolution.model.MeasurementToList;
 
@@ -35,18 +37,18 @@ public class MeasurementAdapter extends RecyclerView.Adapter<MeasurementAdapter.
         this.measurementList = measurementList;
     }
 
-    public static class MyViewHolder extends RecyclerView.ViewHolder
+    static class MyViewHolder extends RecyclerView.ViewHolder
             implements View.OnClickListener{
-        public TextView tvDate;
-        public LinearLayout llMeasureAndResult;
-        public ItemClickListener itemClickListener;
+        TextView tvDate;
+        LinearLayout llMeasureAndResult;
+        ItemClickListener itemClickListener;
         public Context context;
 
-        public void setItemClickListener(ItemClickListener itemClickListener) {
+        void setItemClickListener(ItemClickListener itemClickListener) {
             this.itemClickListener = itemClickListener;
         }
 
-        public MyViewHolder(View view) {
+        MyViewHolder(View view) {
             super(view);
             view.setOnClickListener(this);
 
@@ -113,8 +115,8 @@ public class MeasurementAdapter extends RecyclerView.Adapter<MeasurementAdapter.
         holder.setItemClickListener(new ItemClickListener() {
             @Override
             public void onItemClick(View v, int position) {
-                if (context instanceof MeasurementListActivity) {
-                    ((MeasurementListActivity) context).measurementClicked(measurement);
+                if (context instanceof MainActivity) {
+                    ((MainActivity) context).measurementClicked(measurement);
                 }
             }
         });

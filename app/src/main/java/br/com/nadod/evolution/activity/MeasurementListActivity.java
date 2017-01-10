@@ -47,12 +47,6 @@ public class MeasurementListActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_measurement_list);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
 
         if (savedInstanceState != null) {
             if (savedInstanceState.getSerializable(Utils.MEASURE_LIST) != null &&
@@ -106,8 +100,11 @@ public class MeasurementListActivity extends AppCompatActivity {
 
     private void refreshMeasurementList(int measureId) {
         currentMeasureId = measureId;
-        measurementToList = getMeasurementToList(measurementList.get(currentMeasureId));
-        Collections.sort(measurementToList);
+        List<Measurement> measurementsByMeasure = measurementList.get(currentMeasureId);
+        if (measurementsByMeasure != null) {
+            measurementToList = getMeasurementToList(measurementsByMeasure);
+            Collections.sort(measurementToList);
+        }
         measurementAdapter.setMeasurementList(measurementToList);
         measurementAdapter.notifyDataSetChanged();
     }
@@ -175,8 +172,10 @@ public class MeasurementListActivity extends AppCompatActivity {
                 if (hasChanges) {
                     measurementList.clear();
                     MeasurementDAO measurementDAO = new MeasurementDAO(this);
-                    for (Integer measureId : measureHashMap.keySet())
-                        measurementList.put(measureId, measurementDAO.selectAllByMeasure(measureId));
+                    for (Integer measureId : measureHashMap.keySet()) {
+                        List<Measurement> measurements = measurementDAO.selectAllByMeasure(measureId);
+                        if (!measurements.isEmpty()) measurementList.put(measureId, measurements);
+                    }
                     refreshMeasurementList(currentMeasureId);
                 }
             }

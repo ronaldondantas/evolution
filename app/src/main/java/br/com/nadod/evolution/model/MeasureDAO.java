@@ -15,7 +15,7 @@ public class MeasureDAO {
     private Database dbHelper;
     private SQLiteDatabase db;
 
-    public MeasureDAO (Context context) {
+    public MeasureDAO(Context context) {
         dbHelper = Database.getInstance(context);
         Measure measure = new Measure();
         measure.setId(1);

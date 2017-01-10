@@ -14,6 +14,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -42,6 +43,7 @@ import br.com.nadod.evolution.utils.Utils;
 public class MeasurementActivity extends AppCompatActivity
         implements DatePickerDialog.OnDateSetListener {
 
+    private static final String DELETE = "DELETE";
     private static String MEASUREMENT_BY_DATE = "MEASUREMENT_BY_DATE";
 
     private List<MaterialEditText> materialEditTexts;
@@ -57,6 +59,7 @@ public class MeasurementActivity extends AppCompatActivity
     private long currentDate = -1;
 
     private boolean hasChanges = false;
+    private boolean hasDelete = false;
 
     private AdView mAdView;
 
@@ -64,8 +67,8 @@ public class MeasurementActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_measurement);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+//        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+//        setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
@@ -83,6 +86,7 @@ public class MeasurementActivity extends AppCompatActivity
             currentMeasurement = (MeasurementToList) savedInstanceState.getSerializable(Utils.MEASUREMENT_DATA);
             measurementListByDate = (HashMap<Integer, Measurement>) savedInstanceState.get(MEASUREMENT_BY_DATE);
             hasChanges = savedInstanceState.getBoolean(Utils.CHANGING);
+            hasDelete = savedInstanceState.getBoolean(DELETE);
             currentDate = savedInstanceState.getLong(Utils.CURRENT_DATE);
             if (savedInstanceState.getString(Utils.TITLE_EDIT_MEASUREMENT) != null &&
                     !savedInstanceState.getString(Utils.TITLE_EDIT_MEASUREMENT).isEmpty()) {
@@ -107,7 +111,7 @@ public class MeasurementActivity extends AppCompatActivity
 
         if (measureHashMap == null || measureHashMap.isEmpty()) {
             measureHashMap = new HashMap<>();
-            MeasureDAO measureDAO = new MeasureDAO(this);
+            MeasureDAO measureDAO = new MeasureDAO(getApplicationContext());
             List<Measure> measureList = measureDAO.selectAll();
             for (Measure measure : measureList) measureHashMap.put(measure.getId(), measure);
         }
@@ -258,6 +262,7 @@ public class MeasurementActivity extends AppCompatActivity
         outState.putString(Utils.TITLE_EDIT_MEASUREMENT, title);
         outState.putSerializable(Utils.MET_TEXT, metText);
         outState.putBoolean(Utils.CHANGING, hasChanges);
+        outState.putBoolean(DELETE, hasDelete);
         outState.putLong(Utils.CURRENT_DATE, currentDate);
         super.onSaveInstanceState(outState);
     }
@@ -271,6 +276,7 @@ public class MeasurementActivity extends AppCompatActivity
         title = savedInstanceState.getString(Utils.TITLE_EDIT_MEASUREMENT);
         metText = (HashMap<Integer, String>) savedInstanceState.getSerializable(Utils.MET_TEXT);
         hasChanges = savedInstanceState.getBoolean(Utils.CHANGING);
+        hasDelete = savedInstanceState.getBoolean(DELETE);
         currentDate = savedInstanceState.getLong(Utils.CURRENT_DATE);
     }
 
@@ -323,8 +329,14 @@ public class MeasurementActivity extends AppCompatActivity
                     .setPositiveButton("Sim", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             MeasurementDAO measurementDAO = new MeasurementDAO(getApplicationContext());
-                            measurementDAO.delete(currentMeasurement.getId());
-                            onBackPressed();
+                            if (measurementDAO.delete(currentMeasurement.getId()) == 1) {
+                                hasDelete = true;
+                                onBackPressed();
+                            } else {
+                                Toast.makeText(getApplicationContext(),
+                                        "Não foi possível deletar a medição",
+                                        Toast.LENGTH_LONG).show();
+                            }
                         }
                     })
                     .setNegativeButton("Não", new DialogInterface.OnClickListener() {
@@ -356,7 +368,7 @@ public class MeasurementActivity extends AppCompatActivity
             measurement = new Measurement();
             measurement.setDate(chosenDate.getTime().getTime());
             measurement.setMeasureId((int) metMeasure.getTag());
-            measurement.setValue(Float.valueOf(metMeasure.getText().toString()));
+            measurement.setValue(Float.parseFloat(metMeasure.getText().toString()));
 
             if (!measurementListByDate.isEmpty()) {
                 measurement.setId(measurementListByDate.get(measurement.getMeasure_id()).getId());
@@ -374,13 +386,12 @@ public class MeasurementActivity extends AppCompatActivity
             }
             Intent intent = new Intent();
             intent.putExtra(Utils.NEW_MEASUREMENT_LIST, (Serializable) measurementHashMap);
-            intent.putExtra(Utils.HAS_CHANGES, hasChanges);
+            intent.putExtra(Utils.HAS_CHANGES, hasChanges || hasDelete);
             setResult(RESULT_OK, intent);
-            finish();
         } else {
             setResult(RESULT_CANCELED);
-            finish();
         }
+        finish();
     }
 
     @Override

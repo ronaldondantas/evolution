@@ -32,7 +32,7 @@ public class Database extends SQLiteOpenHelper {
 
     public static Database getInstance(Context ctx) {
         if (database == null) {
-            database = new Database(ctx.getApplicationContext());
+            database = new Database(ctx);
         }
         return database;
     }

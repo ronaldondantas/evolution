@@ -79,14 +79,15 @@ public class MeasurementDAO {
         values.put("date", measurement.getDate());
 
         db = dbHelper.getWritableDatabase();
-        int code = db.update(Utils.TABLE_MEASUREMENT, values, "id=" + measurement.getId(), null);
+        int code = db.update(Utils.TABLE_MEASUREMENT, values, "id=?",
+                new String[]{String.valueOf(measurement.getId())});
         db.close();
         return code;
     }
 
     public int delete(int id) {
         db = dbHelper.getWritableDatabase();
-        int code = db.delete(Utils.TABLE_MEASUREMENT, "id=" + id, null);
+        int code = db.delete(Utils.TABLE_MEASUREMENT, "id=?", new String[]{String.valueOf(id)});
         db.close();
         return code;
     }

@@ -1,6 +1,9 @@
 package br.com.nadod.evolution.utils;
 
 public class Utils {
+    public static final String MEASUREMENT_HASHMAP = "MEASUREMENT_HASHMAP";
+    public static final String MEASURE_HASHMAP = "MEASURE_HASHMAP";
+    public static final String MEASUREMENT_TO_LIST = "MEASUREMENT_TO_LIST";
     //db
     public static String TABLE_MEASURE = "measure";
     public static String TABLE_MEASUREMENT = "measurement";
