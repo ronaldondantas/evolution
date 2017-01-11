@@ -10,6 +10,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.util.Pair;
+import android.support.v7.app.AppCompatDelegate;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,6 +45,11 @@ import br.com.nadod.evolution.model.MeasurementDAO;
 import br.com.nadod.evolution.utils.Utils;
 
 public class ChartFragment extends Fragment {
+
+    static {
+        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+    }
+
     List<String> measuresType = new ArrayList<>();
     HashMap<Integer, Measure> measureHashMap = new HashMap<>();
     Map<Integer, List<Measurement>> measurementHashMap = new HashMap<>();

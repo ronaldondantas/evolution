@@ -6,6 +6,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.AppCompatDelegate;
 
 import com.astuetz.PagerSlidingTabStrip;
 import com.crashlytics.android.Crashlytics;
@@ -34,6 +35,10 @@ import io.fabric.sdk.android.Fabric;
 public class MainActivity extends AppCompatActivity
         implements ChartFragment.OnChartInteractionListener,
         MeasurementListFragment.OnMeasurementListInteractionListener {
+
+    static {
+        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+    }
 
     private static int ADD_MEASUREMENT = 0;
 
