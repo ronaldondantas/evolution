@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
@@ -308,9 +307,10 @@ public class MeasurementActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        if (!measurementListByDate.isEmpty()) {
-            getMenuInflater().inflate(R.menu.menu_delete_measurement, menu);
-            return true;
+        if (measurementListByDate.isEmpty()) {
+            getMenuInflater().inflate(R.menu.menu_save, menu);
+        } else {
+            getMenuInflater().inflate(R.menu.menu_delete_and_save, menu);
         }
         return true;
     }
@@ -323,7 +323,9 @@ public class MeasurementActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.delete) {
+        if (id == R.id.save) {
+            onBackPressed();
+        } else if (id == R.id.delete) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setMessage("Deseja realmente excluir essa medição?")
                     .setPositiveButton("Sim", new DialogInterface.OnClickListener() {
@@ -344,7 +346,8 @@ public class MeasurementActivity extends AppCompatActivity
                         }
                     }).create().show();
         } else if (id == android.R.id.home) {
-            onBackPressed();
+            setResult(RESULT_CANCELED);
+            finish();
         }
         return super.onOptionsItemSelected(item);
     }
