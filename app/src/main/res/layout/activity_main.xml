@@ -9,6 +9,7 @@
         android:id="@+id/tabs"
         app:pstsShouldExpand="true"
         app:pstsTextAllCaps="true"
+        app:pstsIndicatorColor="@color/colorPrimaryDark"
         android:layout_width="match_parent"
         android:layout_height="48dp"/>
 

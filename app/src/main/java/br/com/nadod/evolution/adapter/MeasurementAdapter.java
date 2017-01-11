@@ -15,8 +15,6 @@ import java.util.List;
 
 import br.com.nadod.evolution.R;
 import br.com.nadod.evolution.activity.MainActivity;
-import br.com.nadod.evolution.activity.MeasurementListActivity;
-import br.com.nadod.evolution.fragment.MeasurementListFragment;
 import br.com.nadod.evolution.model.Measure;
 import br.com.nadod.evolution.model.MeasurementToList;
 

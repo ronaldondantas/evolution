@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "996954311799",
+    "firebase_url": "https://evolution-8db05.firebaseio.com",
+    "project_id": "evolution-8db05",
+    "storage_bucket": "evolution-8db05.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:996954311799:android:62dbae12e8b4ce90",
+        "android_client_info": {
+          "package_name": "br.com.nadod.evolution"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "996954311799-6o1e98rf0ma2oiq873nspgdlktbs57js.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC9tw23tnm5dp1AVR9Krofl1i0wqBdKsaA"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
