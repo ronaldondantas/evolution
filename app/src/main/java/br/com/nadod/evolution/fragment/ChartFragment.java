@@ -50,21 +50,23 @@ public class ChartFragment extends Fragment {
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
     }
 
-    List<String> measuresType = new ArrayList<>();
-    HashMap<Integer, Measure> measureHashMap = new HashMap<>();
-    Map<Integer, List<Measurement>> measurementHashMap = new HashMap<>();
-    int currentMeasureId = -1;
+    private List<String> measuresType = new ArrayList<>();
+    private HashMap<Integer, Measure> measureHashMap = new HashMap<>();
+    private Map<Integer, List<Measurement>> measurementHashMap = new HashMap<>();
+    private int currentMeasureId = -1;
 
-    LineChartView lineChartView;
-    LinearLayout llDate;
-    TextView tvLastMeasurementDate;
-    TextView tvMeasure;
-    TextView tvResult;
-    TextView tvMin;
-    TextView tvMax;
-    TextView tvTitleMin;
-    TextView tvTitleMax;
-    Spinner mbsMeasureType;
+    private LineChartView lineChartView;
+    private LinearLayout llDate;
+    private TextView tvLastMeasurementDate;
+    private TextView tvMeasure;
+    private TextView tvResult;
+    private TextView tvMin;
+    private TextView tvMax;
+    private TextView tvTitleMin;
+    private TextView tvTitleMax;
+    private Spinner mbsMeasureType;
+
+    private ArrayAdapter<String> arrayAdapter;
 
     private OnChartInteractionListener mListener;
 
@@ -109,7 +111,7 @@ public class ChartFragment extends Fragment {
         tvTitleMin = (TextView) view.findViewById(R.id.tvMinTitle);
         tvTitleMax = (TextView) view.findViewById(R.id.tvMaxTitle);
 
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getActivity(),
+        arrayAdapter = new ArrayAdapter<>(getActivity(),
                 android.R.layout.simple_dropdown_item_1line, measuresType);
 
         mbsMeasureType = (Spinner) view.findViewById(R.id.mbsMeasureType);
@@ -159,8 +161,21 @@ public class ChartFragment extends Fragment {
             tvTitleMin.setVisibility(View.INVISIBLE);
             tvTitleMax.setVisibility(View.INVISIBLE);
             llDate.setVisibility(View.INVISIBLE);
-            mbsMeasureType.setVisibility(View.INVISIBLE);
-            tvResult.setText("Insira sua primeira medição");
+
+            boolean measurementsEmpty = measurementHashMap.values().isEmpty();
+
+            if (measurementsEmpty) {
+                mbsMeasureType.setVisibility(View.INVISIBLE);
+                tvResult.setText("Insira sua primeira medição");
+            } else {
+                tvResult.setText("Sem medições de " + measureHashMap.get(currentMeasureId).getDescription());
+                mbsMeasureType.setVisibility(View.VISIBLE);
+            }
+
+            if (lineChartView != null) {
+                lineChartView.reset();
+                lineChartView.removeAllViews();
+            }
         }
     }
 

@@ -54,7 +54,6 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Fabric.with(this, new Crashlytics());
 
         MobileAds.initialize(this, getString(R.string.interstitial_ad_unit_id));
 
@@ -162,11 +161,12 @@ public class MainActivity extends AppCompatActivity
 
             boolean hasNewMeasurement = requestCode == ADD_MEASUREMENT;
             if (!hasNewMeasurement) this.measurementHashMap.clear();
-            List<Measurement> totalMeasurement;
             for (Integer measureId : measurementHashMap.keySet()) {
-                totalMeasurement = new ArrayList<>();
-                if (hasNewMeasurement)
+                List<Measurement> totalMeasurement  = new ArrayList<>();
+                if (hasNewMeasurement && this.measurementHashMap.get(measureId) != null &&
+                        !this.measurementHashMap.get(measureId).isEmpty()) {
                     totalMeasurement.addAll(this.measurementHashMap.get(measureId));
+                }
                 totalMeasurement.addAll(measurementHashMap.get(measureId));
                 this.measurementHashMap.put(measureId, totalMeasurement);
             }

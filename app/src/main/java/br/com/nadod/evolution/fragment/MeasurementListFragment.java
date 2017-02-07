@@ -131,6 +131,8 @@ public class MeasurementListFragment extends Fragment {
         if (measurementsByMeasure != null) {
             measurementToList = getMeasurementToList(measurementsByMeasure);
             Collections.sort(measurementToList);
+        } else {
+            measurementToList.clear();
         }
         measurementAdapter.setMeasurementList(measurementToList);
         measurementAdapter.notifyDataSetChanged();
