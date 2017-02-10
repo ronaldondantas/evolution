@@ -1,13 +1,12 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:card_view="http://schemas.android.com/apk/res-auto"
-    tools:context="br.com.nadod.evolution.fragment.ChartFragment">
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    tools:context=".fragment.ChartFragment">
 
     <android.support.v4.widget.NestedScrollView
-        xmlns:android="http://schemas.android.com/apk/res/android"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -21,7 +20,7 @@
             android:layout_width="match_parent"
             android:layout_margin="2dp"
             android:background="#FFFFFF"
-            card_view:cardCornerRadius="5dp">
+            app:cardCornerRadius="5dp">
 
             <LinearLayout
                 android:id="@+id/llChart"
