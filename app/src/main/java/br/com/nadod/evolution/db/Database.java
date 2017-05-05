@@ -19,10 +19,10 @@ public class Database extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE " + Utils.TABLE_MEASURE + "(id INTEGER PRIMARY KEY, " +
+        db.execSQL("CREATE TABLE " + Utils.TABLE_MEASURE + "(id INTEGER PRIMARY KEY, user_uid TEXT, " +
                 "name TEXT, description TEXT);");
 
-        db.execSQL("CREATE TABLE " + Utils.TABLE_MEASUREMENT + "(id INTEGER PRIMARY KEY, " +
+        db.execSQL("CREATE TABLE " + Utils.TABLE_MEASUREMENT + "(id INTEGER PRIMARY KEY, user_uid TEXT, " +
                 "measure_id INTEGER, value REAL, date INTEGER);");
     }
 

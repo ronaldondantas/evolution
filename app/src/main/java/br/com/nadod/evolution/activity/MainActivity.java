@@ -9,12 +9,19 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.AppCompatDelegate;
 
 import com.astuetz.PagerSlidingTabStrip;
-import com.crashlytics.android.Crashlytics;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.ads.MobileAds;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,12 +36,12 @@ import br.com.nadod.evolution.model.MeasureDAO;
 import br.com.nadod.evolution.model.Measurement;
 import br.com.nadod.evolution.model.MeasurementDAO;
 import br.com.nadod.evolution.model.MeasurementToList;
+import br.com.nadod.evolution.singleton.UserSingleton;
+import br.com.nadod.evolution.utils.EvolutionFirebase;
 import br.com.nadod.evolution.utils.Utils;
-import io.fabric.sdk.android.Fabric;
 
-public class MainActivity extends AppCompatActivity
-        implements ChartFragment.OnChartInteractionListener,
-        MeasurementListFragment.OnMeasurementListInteractionListener {
+public class MainActivity extends BaseActivity
+        implements ChartFragment.OnChartInteractionListener {
 
     static {
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
@@ -42,6 +49,7 @@ public class MainActivity extends AppCompatActivity
 
     private static int ADD_MEASUREMENT = 0;
 
+    private ViewPager vpPager;
     private SmartFragmentStatePagerAdapter adapterViewPager;
 
     private InterstitialAd mInterstitialAd;
@@ -74,19 +82,10 @@ public class MainActivity extends AppCompatActivity
         }
 
         if (measurementHashMap.isEmpty()) {
-            MeasurementDAO measurementDAO = new MeasurementDAO(this);
-            MeasureDAO measureDAO = new MeasureDAO(this);
-            List<Measure> measureList = measureDAO.selectAll();
-            for (Measure measure : measureList) {
-                measureHashMap.put(measure.getId(), measure);
-                measuresType.add(measure.getDescription());
-
-                measurementHashMap.put(measure.getId(),
-                        measurementDAO.selectAllByMeasure(measure.getId()));
-            }
+            loadAllData();
         }
 
-        ViewPager vpPager = (ViewPager) findViewById(R.id.vpPager);
+        vpPager = (ViewPager) findViewById(R.id.vpPager);
         adapterViewPager = new MyPagerAdapter(getSupportFragmentManager(), measuresType,
                 measureHashMap, measurementHashMap);
 
@@ -98,7 +97,90 @@ public class MainActivity extends AppCompatActivity
             if (tabsStrip != null) tabsStrip.setViewPager(vpPager);
         }
 
+        loadFirebaseDatabaseListener();
+
         loadInterstitial();
+    }
+
+    private void clearAllData() {
+        measureHashMap.clear();
+        measuresType.clear();
+        measurementHashMap.clear();
+    }
+
+    private void loadAllData() {
+        showProgressDialog();
+
+        MeasurementDAO measurementDAO = new MeasurementDAO(this);
+        MeasureDAO measureDAO = new MeasureDAO(this);
+        List<Measure> measureList =
+                measureDAO.selectAll(UserSingleton.getInstance(MainActivity.this).getUid());
+        for (Measure measure : measureList) {
+            measureHashMap.put(measure.getId(), measure);
+            measuresType.add(measure.getDescription());
+
+            measurementHashMap.put(measure.getId(),
+                    measurementDAO.selectAllByMeasure(measure.getId(),
+                            UserSingleton.getInstance(MainActivity.this).getUid()));
+        }
+    }
+
+    private void loadFirebaseDatabaseListener() {
+        final FirebaseDatabase database = FirebaseDatabase.getInstance();
+
+        DatabaseReference ref = database.getReference("measures/"+ UserSingleton.getInstance(getApplicationContext()).getUid());
+        ref.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Type type = new TypeToken<List<Measure>>(){}.getType();
+                List<Measure> measures = new Gson().fromJson(dataSnapshot.getValue().toString(), type);
+
+                MeasureDAO measureDAO = new MeasureDAO(getApplicationContext());
+                measureDAO.insertOrReplaceAll(measures);
+
+                clearAllData();
+                loadAllData();
+
+                refreshChart();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+
+        DatabaseReference refMeasurements = database.getReference("measurements/"+ UserSingleton.getInstance(getApplicationContext()).getUid());
+        refMeasurements.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Type type = new TypeToken<List<Measurement>>(){}.getType();
+                List<Measurement> measurements = new Gson().fromJson(dataSnapshot.getValue().toString(), type);
+
+                MeasurementDAO measurementDAO = new MeasurementDAO(getApplicationContext());
+                measurementDAO.insertOrReplaceAll(measurements);
+
+                clearAllData();
+                loadAllData();
+
+                refreshChart();
+
+                adapterViewPager.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("The read failed: " + databaseError.getCode());
+            }
+        });
+    }
+
+    private void refreshChart() {
+        OnDataChanged onDataChanged =
+                (OnDataChanged) adapterViewPager.getRegisteredFragment(vpPager.getCurrentItem());
+        onDataChanged.refreshData();
+
+        hideProgressDialog();
     }
 
     private void showInterstitial() {
@@ -150,7 +232,8 @@ public class MainActivity extends AppCompatActivity
                 if (hasChanges) {
                     MeasurementDAO measurementDAO = new MeasurementDAO(this);
                     for (Integer measureId : measureHashMap.keySet()) {
-                        List<Measurement> measurements = measurementDAO.selectAllByMeasure(measureId);
+                        List<Measurement> measurements = measurementDAO.selectAllByMeasure(measureId,
+                                UserSingleton.getInstance(MainActivity.this).getUid());
                         if (!measurements.isEmpty()) measurementHashMap.put(measureId, measurements);
                     }
                 }
@@ -179,6 +262,10 @@ public class MainActivity extends AppCompatActivity
             measurementListFragment.afterCrudMeasurement(hasNewMeasurement ||
                     data.getBooleanExtra(Utils.HAS_CHANGES, false));
 
+            EvolutionFirebase.postMeasurement(UserSingleton.getInstance(MainActivity.this)
+                    .getUid(), new Gson().toJson(new MeasurementDAO(MainActivity.this)
+                    .selectAll(UserSingleton.getInstance(MainActivity.this).getUid())));
+
             adapterViewPager.notifyDataSetChanged();
         }
     }
@@ -187,11 +274,11 @@ public class MainActivity extends AppCompatActivity
     public static class MyPagerAdapter extends SmartFragmentStatePagerAdapter {
         private static int NUM_ITEMS = 2;
 
-        List<String> measuresType = new ArrayList<>();
-        HashMap<Integer, Measure> measureHashMap = new HashMap<>();
-        Map<Integer, List<Measurement>> measurementHashMap = new HashMap<>();
+        private List<String> measuresType = new ArrayList<>();
+        private HashMap<Integer, Measure> measureHashMap = new HashMap<>();
+        private Map<Integer, List<Measurement>> measurementHashMap = new HashMap<>();
 
-        MyPagerAdapter(FragmentManager fragmentManager, List<String> measuresType,
+        public MyPagerAdapter(FragmentManager fragmentManager, List<String> measuresType,
                        HashMap<Integer, Measure> measureHashMap,
                        Map<Integer, List<Measurement>> measurementHashMap) {
             super(fragmentManager);

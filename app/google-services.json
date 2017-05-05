@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "996954311799-ptn5jme7di6m9l0u2oliho7min8ipoov.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "br.com.nadod.evolution",
+            "certificate_hash": "1AEA482113AA8EDF3E83D93CDCF5D04E2A63D9DA"
+          }
+        },
+        {
           "client_id": "996954311799-6o1e98rf0ma2oiq873nspgdlktbs57js.apps.googleusercontent.com",
           "client_type": 3
         }

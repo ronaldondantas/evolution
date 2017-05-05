@@ -1,10 +1,8 @@
 package br.com.nadod.evolution.fragment;
 
-import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -23,23 +21,20 @@ import java.util.List;
 import java.util.Map;
 
 import br.com.nadod.evolution.R;
-import br.com.nadod.evolution.activity.MeasurementActivity;
+import br.com.nadod.evolution.activity.OnDataChanged;
 import br.com.nadod.evolution.adapter.MeasurementAdapter;
 import br.com.nadod.evolution.model.Measure;
 import br.com.nadod.evolution.model.Measurement;
 import br.com.nadod.evolution.model.MeasurementDAO;
 import br.com.nadod.evolution.model.MeasurementToList;
+import br.com.nadod.evolution.singleton.UserSingleton;
 import br.com.nadod.evolution.utils.Utils;
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link OnMeasurementListInteractionListener} interface
- * to handle interaction events.
- * Use the {@link MeasurementListFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
-public class MeasurementListFragment extends Fragment {
+public class MeasurementListFragment extends Fragment implements OnDataChanged {
+    static {
+        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+    }
+
     private MeasurementAdapter measurementAdapter;
 
     private List<String> measuresType = new ArrayList<>();
@@ -48,18 +43,7 @@ public class MeasurementListFragment extends Fragment {
 
     private List<MeasurementToList> measurementToList = new ArrayList<>();
 
-    private Spinner mbsMeasureType;
-
     int currentMeasureId = -1;
-    private boolean hasChanges = false;
-
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-//    private static final String ARG_PARAM2 = "param2";
-
-
-    private OnMeasurementListInteractionListener mListener;
 
     public MeasurementListFragment() {
         // Required empty public constructor
@@ -97,7 +81,7 @@ public class MeasurementListFragment extends Fragment {
             ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getActivity(),
                     android.R.layout.simple_dropdown_item_1line, measuresType);
 
-            mbsMeasureType = (Spinner) view.findViewById(R.id.mbsMeasureType);
+            Spinner mbsMeasureType = (Spinner) view.findViewById(R.id.mbsMeasureType);
             if (mbsMeasureType != null) {
                 mbsMeasureType.setAdapter(arrayAdapter);
                 mbsMeasureType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -152,12 +136,12 @@ public class MeasurementListFragment extends Fragment {
     }
 
     public void afterCrudMeasurement(boolean hasChanges) {
-        this.hasChanges = hasChanges;
         if (hasChanges) {
             measurementList.clear();
             MeasurementDAO measurementDAO = new MeasurementDAO(getActivity());
             for (Integer measureId : measureHashMap.keySet()) {
-                List<Measurement> measurements = measurementDAO.selectAllByMeasure(measureId);
+                List<Measurement> measurements = measurementDAO.selectAllByMeasure(measureId,
+                        UserSingleton.getInstance(getActivity()).getUid());
                 if (!measurements.isEmpty()) measurementList.put(measureId, measurements);
             }
             refreshMeasurementList(currentMeasureId);
@@ -165,33 +149,7 @@ public class MeasurementListFragment extends Fragment {
     }
 
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnMeasurementListInteractionListener) {
-            mListener = (OnMeasurementListInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnChartInteractionListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnMeasurementListInteractionListener {
-//        void onMeasurementListInteraction(MeasurementToList measurement);
+    public void refreshData() {
+        refreshMeasurementList(currentMeasureId);
     }
 }

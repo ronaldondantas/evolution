@@ -1,10 +1,8 @@
 package br.com.nadod.evolution.fragment;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -37,15 +35,12 @@ import java.util.List;
 import java.util.Map;
 
 import br.com.nadod.evolution.R;
-import br.com.nadod.evolution.activity.MeasurementActivity;
+import br.com.nadod.evolution.activity.OnDataChanged;
 import br.com.nadod.evolution.model.Measure;
-import br.com.nadod.evolution.model.MeasureDAO;
 import br.com.nadod.evolution.model.Measurement;
-import br.com.nadod.evolution.model.MeasurementDAO;
 import br.com.nadod.evolution.utils.Utils;
 
-public class ChartFragment extends Fragment {
-
+public class ChartFragment extends Fragment implements OnDataChanged {
     static {
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
     }
@@ -65,8 +60,6 @@ public class ChartFragment extends Fragment {
     private TextView tvTitleMin;
     private TextView tvTitleMax;
     private Spinner mbsMeasureType;
-
-    private ArrayAdapter<String> arrayAdapter;
 
     private OnChartInteractionListener mListener;
 
@@ -111,7 +104,7 @@ public class ChartFragment extends Fragment {
         tvTitleMin = (TextView) view.findViewById(R.id.tvMinTitle);
         tvTitleMax = (TextView) view.findViewById(R.id.tvMaxTitle);
 
-        arrayAdapter = new ArrayAdapter<>(getActivity(),
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getActivity(),
                 android.R.layout.simple_dropdown_item_1line, measuresType);
 
         mbsMeasureType = (Spinner) view.findViewById(R.id.mbsMeasureType);
@@ -168,7 +161,10 @@ public class ChartFragment extends Fragment {
                 mbsMeasureType.setVisibility(View.INVISIBLE);
                 tvResult.setText("Insira sua primeira medição");
             } else {
-                tvResult.setText("Sem medições de " + measureHashMap.get(currentMeasureId).getDescription());
+                String msg = measureHashMap.get(currentMeasureId) != null ?
+                        "Sem medições de " + measureHashMap.get(currentMeasureId).getDescription() :
+                        "Sem medições";
+                tvResult.setText(msg);
                 mbsMeasureType.setVisibility(View.VISIBLE);
             }
 
@@ -314,18 +310,12 @@ public class ChartFragment extends Fragment {
         mListener = null;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
+    @Override
+    public void refreshData() {
+        plotChart();
+    }
+
     public interface OnChartInteractionListener {
-        // TODO: Update argument type and name
         void onChartInteraction(HashMap<Integer, Measure> measureHashMap);
     }
 }

@@ -18,6 +18,9 @@ import android.widget.Toast;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.gson.Gson;
 import com.rengwuxian.materialedittext.MaterialEditText;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
@@ -37,6 +40,8 @@ import br.com.nadod.evolution.model.MeasureDAO;
 import br.com.nadod.evolution.model.Measurement;
 import br.com.nadod.evolution.model.MeasurementDAO;
 import br.com.nadod.evolution.model.MeasurementToList;
+import br.com.nadod.evolution.singleton.UserSingleton;
+import br.com.nadod.evolution.utils.EvolutionFirebase;
 import br.com.nadod.evolution.utils.Utils;
 
 public class MeasurementActivity extends AppCompatActivity
@@ -66,8 +71,6 @@ public class MeasurementActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_measurement);
-//        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-//        setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
@@ -111,7 +114,8 @@ public class MeasurementActivity extends AppCompatActivity
         if (measureHashMap == null || measureHashMap.isEmpty()) {
             measureHashMap = new HashMap<>();
             MeasureDAO measureDAO = new MeasureDAO(getApplicationContext());
-            List<Measure> measureList = measureDAO.selectAll();
+            List<Measure> measureList =
+                    measureDAO.selectAll(UserSingleton.getInstance(MeasurementActivity.this).getUid());
             for (Measure measure : measureList) measureHashMap.put(measure.getId(), measure);
         }
 
@@ -126,7 +130,8 @@ public class MeasurementActivity extends AppCompatActivity
             }
 
             if (measurementListByDate.isEmpty()) {
-                measurementListByDate = measurementDAO.selectAllByDate(date);
+                measurementListByDate = measurementDAO.selectAllByDate(date,
+                        UserSingleton.getInstance(MeasurementActivity.this).getUid());
             }
         }
 
@@ -369,6 +374,7 @@ public class MeasurementActivity extends AppCompatActivity
             if (metMeasure.getText().toString().isEmpty()) continue;
             List<Measurement> measurementList = new ArrayList<>();
             measurement = new Measurement();
+            measurement.setUser_uid(UserSingleton.getInstance(MeasurementActivity.this).getUid());
             measurement.setDate(chosenDate.getTime().getTime());
             measurement.setMeasureId((int) metMeasure.getTag());
             measurement.setValue(Float.parseFloat(metMeasure.getText().toString()));
@@ -387,6 +393,7 @@ public class MeasurementActivity extends AppCompatActivity
             } else if (hasChanges) {
                 measurementDAO.updateAll(measurementHashMap);
             }
+
             Intent intent = new Intent();
             intent.putExtra(Utils.NEW_MEASUREMENT_LIST, (Serializable) measurementHashMap);
             intent.putExtra(Utils.HAS_CHANGES, hasChanges || hasDelete);
