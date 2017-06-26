@@ -132,16 +132,19 @@ public class MainActivity extends BaseActivity
         ref.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Type type = new TypeToken<List<Measure>>(){}.getType();
-                List<Measure> measures = new Gson().fromJson(dataSnapshot.getValue().toString(), type);
+                if (dataSnapshot != null && dataSnapshot.getValue() != null) {
+                    Type type = new TypeToken<List<Measure>>() {
+                    }.getType();
+                    List<Measure> measures = new Gson().fromJson(dataSnapshot.getValue().toString(), type);
 
-                MeasureDAO measureDAO = new MeasureDAO(getApplicationContext());
-                measureDAO.insertOrReplaceAll(measures);
+                    MeasureDAO measureDAO = new MeasureDAO(getApplicationContext());
+                    measureDAO.insertOrReplaceAll(measures);
 
-                clearAllData();
-                loadAllData();
+                    clearAllData();
+                    loadAllData();
 
-                refreshChart();
+                    refreshChart();
+                }
             }
 
             @Override
@@ -154,18 +157,21 @@ public class MainActivity extends BaseActivity
         refMeasurements.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Type type = new TypeToken<List<Measurement>>(){}.getType();
-                List<Measurement> measurements = new Gson().fromJson(dataSnapshot.getValue().toString(), type);
+                if (dataSnapshot != null && dataSnapshot.getValue() != null) {
+                    Type type = new TypeToken<List<Measurement>>() {
+                    }.getType();
+                    List<Measurement> measurements = new Gson().fromJson(dataSnapshot.getValue().toString(), type);
 
-                MeasurementDAO measurementDAO = new MeasurementDAO(getApplicationContext());
-                measurementDAO.insertOrReplaceAll(measurements);
+                    MeasurementDAO measurementDAO = new MeasurementDAO(getApplicationContext());
+                    measurementDAO.insertOrReplaceAll(measurements);
 
-                clearAllData();
-                loadAllData();
+                    clearAllData();
+                    loadAllData();
 
-                refreshChart();
+                    refreshChart();
 
-                adapterViewPager.notifyDataSetChanged();
+                    adapterViewPager.notifyDataSetChanged();
+                }
             }
 
             @Override
